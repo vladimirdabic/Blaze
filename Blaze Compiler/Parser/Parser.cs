@@ -68,7 +68,7 @@ namespace VD.Blaze.Parser
                 Consume(TokenType.OPEN_BRACE, "Expected func body");
 
                 var body = new List<Statement>();
-                // TODO: Parse function body
+
                 while (Available() && !Check(TokenType.CLOSE_BRACE))
                 {
                     body.Add(ParseStatement());
@@ -76,7 +76,7 @@ namespace VD.Blaze.Parser
 
                 Consume(TokenType.CLOSE_BRACE, "Expected '}' to close func body");
 
-                return new Statement.TopFuncDef(visibility, name.Location, (string)name.Value, args, null);
+                return new Statement.TopFuncDef(visibility, name.Location, (string)name.Value, args, body);
             }
 
             throw new ParserException(Peek().Location.Source, Peek().Location.Line, "Expected a declaration");

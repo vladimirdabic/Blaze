@@ -71,9 +71,9 @@ namespace VD.Blaze.Lexer
         public string Source;
         public int Line;
 
-            public override string ToString()
-            {
-                return $"{Source}:{Line}";
-            }
+        public override string ToString()
+        {
+            return $"{Source}:{Line}";
         }
+    }
 }
