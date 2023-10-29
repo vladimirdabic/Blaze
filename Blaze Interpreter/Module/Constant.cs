@@ -16,7 +16,7 @@ namespace VD.Blaze.Module
         public Constant(ConstantType type)
         {
             Type = type;
-            Index = 0; // maybe -1 idk yet
+            Index = 0; // Index 0 means constant doesn't exist
         }
 
         public virtual void WriteData(BinaryWriter writer) { }
@@ -29,7 +29,7 @@ namespace VD.Blaze.Module
 
         public void FromBinary(BinaryReader reader)
         {
-            Type = (ConstantType)reader.ReadByte();
+            // Type = (ConstantType)reader.ReadByte();
             ReadData(reader);
         }
 

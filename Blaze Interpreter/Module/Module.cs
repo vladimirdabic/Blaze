@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Blaze_Interpreter;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,15 +11,30 @@ namespace VD.Blaze.Module
     public class Module
     {
         public List<Constant> Constants;
+        public List<Variable> Variables;
         public List<Function> Functions;
 
+        public Module()
+        {
+            Constants = new List<Constant>();
+            Variables = new List<Variable>();
+            Functions = new List<Function>();
+        }
 
         public Function CreateFunction(string name, int num_args)
         {
             Constant name_const = AddConstant(new Constant.String(name));
-            Function func = new Function(name_const, num_args);
+            Function func = new Function(this, name_const, num_args);
             Functions.Add(func);
             return func;
+        }
+
+        public Variable DefineVariable(string name, VariableType type)
+        {
+            Constant name_const = AddConstant(new Constant.String(name));
+            Variable mod_var = new Variable(this, type, name_const);
+            Variables.Add(mod_var);
+            return mod_var;
         }
 
 
@@ -27,6 +43,125 @@ namespace VD.Blaze.Module
             constant.Index = Constants.Count;
             Constants.Add(constant);
             return constant;
+        }
+
+
+        public void FromBinary(BinaryReader br)
+        {
+            uint id = br.ReadUInt32();
+
+            if (id != 0x6D7A6C62)
+                throw new Exception("File is not a Blaze module file");
+
+            byte major = br.ReadByte();
+            byte minor = br.ReadByte();
+
+            ushort const_count = br.ReadUInt16();
+            for(int i = 0;  i < const_count; i++)
+            {
+                ConstantType type = (ConstantType)br.ReadByte();
+                Constant constant = null;
+                
+                switch(type)
+                {
+                    case ConstantType.NUMBER:
+                        constant = new Constant.Number(0);
+                        break;
+                    case ConstantType.STRING:
+                        constant = new Constant.String(string.Empty);
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+
+                constant.Index = i;
+                constant.FromBinary(br);
+                Constants.Add(constant);
+            }
+
+            ushort var_count = br.ReadUInt16();
+            for (int i = 0; i < var_count; i++)
+            {
+                Variable mod_var = new Variable(this);
+                mod_var.FromBinary(br);
+                Variables.Add(mod_var);
+            }
+
+            ushort func_count = br.ReadUInt16();
+            for(int i = 0; i < func_count; i++)
+            {
+                Function func = new Function(this);
+                func.FromBinary(br);
+                Functions.Add(func);
+            }
+
+            ushort class_count = br.ReadUInt16();
+            ushort start_func_idx = br.ReadUInt16();
+        }
+
+        public void ToBinary(BinaryWriter bw)
+        {
+            // 0x626C7A6D ("blzm")
+            // Since BinaryWriter writes in little endian, the number must be backwards
+            // 0x6D7A6C62
+            bw.Write((uint)0x6D7A6C62);
+            // 01 00  (major, minor) (BinaryWriter is little endian so 0x0001)
+            bw.Write((ushort)0x0001);
+
+            // Constants
+            bw.Write((ushort)Constants.Count);
+            foreach(Constant constant in Constants)
+                constant.ToBinary(bw);
+
+            // Variables
+            bw.Write((ushort)Variables.Count);
+            foreach (Variable mod_var in Variables)
+                mod_var.ToBinary(bw);
+
+            // Functions
+            bw.Write((ushort)Functions.Count);
+            foreach(Function function in Functions)
+                function.ToBinary(bw);
+            
+            // Classes
+            bw.Write((ushort)0);
+
+            // Startup function idx
+            bw.Write((ushort)0);
+        }
+
+        public void PrintToConsole()
+        {
+            Console.WriteLine("== CONSTANTS ==");
+            foreach (var constant in Constants)
+            {
+                switch (constant.Type)
+                {
+                    case ConstantType.NUMBER:
+                        Console.WriteLine($"{constant.Index}: Number({((Constant.Number)constant).Value})");
+                        break;
+
+                    case ConstantType.STRING:
+                        Console.WriteLine($"{constant.Index}: String({((Constant.String)constant).Value})");
+                        break;
+                }
+            }
+
+            Console.WriteLine("\n== VARIABLES ==");
+            foreach(var mod_var in Variables)
+            {
+                Console.WriteLine($"{((Constant.String)mod_var.Name).Value} ({mod_var.Type})");
+            }
+
+            Console.WriteLine("\n== FUNCTIONS ==");
+            foreach (var func in Functions)
+            {
+                Console.WriteLine($"{((Constant.String)func.Name).Value} (# args: {func.NumOfArgs}, # locals: {func.NumOfLocals}, Varargs: {func.Varargs})");
+                foreach (var inst in func.Instructions)
+                {
+                    Console.WriteLine($"    {inst.inst} {inst.arg}");
+                }
+            }
         }
     }
 }
