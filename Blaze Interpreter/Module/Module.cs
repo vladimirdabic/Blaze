@@ -10,21 +10,44 @@ namespace VD.Blaze.Module
 {
     public class Module
     {
-        public List<Constant> Constants;
-        public List<Variable> Variables;
-        public List<Function> Functions;
+        public readonly List<Constant> Constants;
+        public readonly List<Variable> Variables;
+        public readonly List<Function> Functions;
+
+        private readonly Function _staticFunction;
+        private readonly Dictionary<string, Constant> _stringConstantMap;
 
         public Module()
         {
             Constants = new List<Constant>();
             Variables = new List<Variable>();
             Functions = new List<Function>();
+
+            _stringConstantMap = new Dictionary<string, Constant>();
+            _staticFunction = CreateAnonymousFunction(0);
         }
 
         public Function CreateFunction(string name, int num_args)
         {
             Constant name_const = AddConstant(new Constant.String(name));
             Function func = new Function(this, name_const, num_args);
+            func.Index = Functions.Count;
+            Functions.Add(func);
+
+            Variable func_var = new Variable(this, VariableType.PRIVATE, name_const);
+            Variables.Add(func_var);
+
+            // Initialize in the static function so parent modules can access it
+            _staticFunction.Emit(Instruction.LDFUNC, func);
+            _staticFunction.Emit(Instruction.STVAR, func_var);
+
+            return func;
+        }
+
+        public Function CreateAnonymousFunction(int num_args)
+        {
+            Function func = new Function(this, null, num_args);
+            func.Index = Functions.Count;
             Functions.Add(func);
             return func;
         }
@@ -40,6 +63,14 @@ namespace VD.Blaze.Module
 
         public Constant AddConstant(Constant constant)
         {
+            if(constant is Constant.String str_const)
+            {
+                if(_stringConstantMap.ContainsKey(str_const.Value))
+                    return _stringConstantMap[str_const.Value];
+
+                _stringConstantMap[str_const.Value] = constant;
+            }
+
             constant.Index = Constants.Count;
             Constants.Add(constant);
             return constant;
@@ -96,7 +127,6 @@ namespace VD.Blaze.Module
             }
 
             ushort class_count = br.ReadUInt16();
-            ushort start_func_idx = br.ReadUInt16();
         }
 
         public void ToBinary(BinaryWriter bw)
@@ -124,9 +154,6 @@ namespace VD.Blaze.Module
                 function.ToBinary(bw);
             
             // Classes
-            bw.Write((ushort)0);
-
-            // Startup function idx
             bw.Write((ushort)0);
         }
 
@@ -156,7 +183,9 @@ namespace VD.Blaze.Module
             Console.WriteLine("\n== FUNCTIONS ==");
             foreach (var func in Functions)
             {
-                Console.WriteLine($"{((Constant.String)func.Name).Value} (# args: {func.NumOfArgs}, # locals: {func.NumOfLocals}, Varargs: {func.Varargs})");
+                string name = func.Name is null ? "<anonymous>" : ((Constant.String)func.Name).Value;
+
+                Console.WriteLine($"{name} (# args: {func.NumOfArgs}, # locals: {func.NumOfLocals}, Varargs: {func.Varargs})");
                 foreach (var inst in func.Instructions)
                 {
                     Console.WriteLine($"    {inst.inst} {inst.arg}");

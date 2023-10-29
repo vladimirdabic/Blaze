@@ -9,6 +9,7 @@ namespace VD.Blaze.Module
 {
     public class Function
     {
+        public int Index;
         public Module ParentModule;
         public Constant Name;
         public int NumOfArgs;
@@ -25,13 +26,8 @@ namespace VD.Blaze.Module
             ParentModule = module;
         }
 
-        public Function(Module module, Constant name, int numOfArgs) : this(module, name, numOfArgs, false)
-        {
-        }
-
-        public Function(Module module) : this(module, null, 0, false)
-        {
-        }
+        public Function(Module module, Constant name, int numOfArgs) : this(module, name, numOfArgs, false) { }
+        public Function(Module module) : this(module, null, 0, false) { }
 
         public void Emit(Instruction instruction, byte argument)
         {
@@ -46,6 +42,11 @@ namespace VD.Blaze.Module
         public void Emit(Instruction instruction, Variable mod_var)
         {
             Instructions.Add((instruction, (byte)mod_var.Name.Index));
+        }
+
+        public void Emit(Instruction instruction, Function func)
+        {
+            Instructions.Add((instruction, (byte)func.Index));
         }
 
         public void Emit(Instruction instruction)
@@ -107,7 +108,7 @@ namespace VD.Blaze.Module
     {
         NOP, POP,
         
-        LDNULL, LDARG, LDCONST, LDLOCAL, LDVAR,
+        LDNULL, LDARG, LDCONST, LDLOCAL, LDVAR, LDFUNC, LDCLASS,
         STLOCAL, STVAR,
 
         CALL, RET,
