@@ -95,8 +95,8 @@ namespace Blaze_Interpreter
              */
 
 
-            byte lcl_a = local_test.DeclareLocal();
-            byte lcl_b = local_test.DeclareLocal();
+            LocalVariable lcl_a = local_test.DeclareLocal();
+            LocalVariable lcl_b = local_test.DeclareLocal();
 
             // var a = 2 * x;
             local_test.Emit(Instruction.LDCONST, 0);

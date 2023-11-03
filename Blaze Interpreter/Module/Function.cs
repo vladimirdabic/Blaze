@@ -49,14 +49,30 @@ namespace VD.Blaze.Module
             Instructions.Add((instruction, (byte)func.Index));
         }
 
+        public void Emit(Instruction instruction, LocalVariable local)
+        {
+            Instructions.Add((instruction, local.Index));
+        }
+
         public void Emit(Instruction instruction)
         {
             Emit(instruction, 0);
         }
 
+        /*
         public byte DeclareLocal()
         {
             return NumOfLocals++;
+        }
+        */
+
+        public LocalVariable DeclareLocal()
+        {
+            return new LocalVariable()
+            {
+                Index = NumOfLocals++,
+                Owner = this
+            };
         }
 
         public void ToBinary(BinaryWriter bw)
@@ -108,6 +124,8 @@ namespace VD.Blaze.Module
     {
         NOP, POP,
         
+        EXTENDED_ARG,
+
         LDNULL, LDARG, LDCONST, LDLOCAL, LDVAR, LDFUNC, LDCLASS,
         STLOCAL, STVAR,
 
@@ -115,5 +133,11 @@ namespace VD.Blaze.Module
         
         // INTDIV pushes the result and the remainder on the stack [..., RES, REMAINDER]
         ADD, SUB, MUL, DIV, INTDIV
+    }
+
+    public struct LocalVariable
+    {
+        public Function Owner;
+        public byte Index;
     }
 }
