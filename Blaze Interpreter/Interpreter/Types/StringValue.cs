@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace VD.Blaze.Interpreter.Types
 {
-    public class NumberValue : IValue, IValueBinOp
+    public class StringValue : IValue, IValueBinOp
     {
-        public double Value;
+        public string Value;
 
-        public NumberValue(double value) { Value = value; }
+        public StringValue(string value) { Value = value; }
 
         public IValue Copy()
         {
@@ -19,15 +19,15 @@ namespace VD.Blaze.Interpreter.Types
 
         public bool Equals(IValue other)
         {
-            if(other == this) return true;
-            if (other is NumberValue otherNum) return Value == otherNum.Value;
+            if (other == this) return true;
+            if (other is StringValue otherNum) return Value == otherNum.Value;
 
             return false;
         }
 
         public string GetName()
         {
-            return "number";
+            return "string";
         }
 
         public string AsString()
@@ -37,49 +37,42 @@ namespace VD.Blaze.Interpreter.Types
 
         public IValue Add(IValue other)
         {
-            if(other is NumberValue otherNum)
-                return new NumberValue(Value + otherNum.Value);
+            if (other is NumberValue otherNum)
+                // Add string and number
+                return new StringValue(Value + otherNum.Value);
+
+            if (other is StringValue otherStr)
+                // Add strings
+                return new StringValue(Value + otherStr.Value);
 
             return null;
         }
 
         public IValue Subtract(IValue other)
         {
-            if (other is NumberValue otherNum)
-                return new NumberValue(Value - otherNum.Value);
-
             return null;
         }
 
         public IValue Multiply(IValue other)
         {
             if (other is NumberValue otherNum)
-                return new NumberValue(Value * otherNum.Value);
+                return new StringValue(new StringBuilder(Value.Length * (int)otherNum.Value).Insert(0, Value, (int)otherNum.Value).ToString());
 
             return null;
         }
 
         public IValue Divide(IValue other)
         {
-            if (other is NumberValue otherNum)
-                return new NumberValue(Value / otherNum.Value);
-
             return null;
         }
 
         public IValue LessThan(IValue other)
         {
-            if (other is NumberValue otherNum)
-                return new BooleanValue(Value < otherNum.Value);
-
             return null;
         }
 
         public IValue LessThanEquals(IValue other)
         {
-            if (other is NumberValue otherNum)
-                return new BooleanValue(Value <= otherNum.Value);
-            
             return null;
         }
 

@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using VD.Blaze.Interpreter;
+using VD.Blaze.Interpreter.Types;
 using VD.Blaze.Module;
 
 namespace Blaze_Interpreter
@@ -21,6 +23,17 @@ namespace Blaze_Interpreter
             module.FromBinary(reader);
             module.PrintToConsole();
 
+            Console.Write('\n');
+            Console.ReadKey();
+
+            Interpreter interpreter = new Interpreter();
+            ModuleEnvironment env = interpreter.LoadModule(module);
+
+            var func = env.GetFunction("test");
+            IValue ret = interpreter.RunFunction(env, func, null);
+
+            Console.WriteLine("Running function test: ");
+            Console.WriteLine(ret.AsString());
             Console.ReadKey();
         }
 
@@ -28,7 +41,6 @@ namespace Blaze_Interpreter
         static void Main2(string[] args)
         {
             Module module = new Module();
-
 
             Function add_func = module.CreateFunction("add", 2);
 
@@ -45,77 +57,33 @@ namespace Blaze_Interpreter
              * RET
              */
 
-            add_func.Emit(Instruction.LDARG, 0);
-            add_func.Emit(Instruction.LDARG, 1);
-            add_func.Emit(Instruction.ADD);
-            add_func.Emit(Instruction.RET);
+            add_func.Emit(Opcode.LDARG, 0);
+            add_func.Emit(Opcode.LDARG, 1);
+            add_func.Emit(Opcode.ADD);
+            add_func.Emit(Opcode.RET);
 
-            Function var_test = module.CreateFunction("var_test", 0);
-            Variable my_var = module.DefineVariable("test", VariableType.PRIVATE);
-
-            /*
-             * private var test;
-             * 
-             * func var_test() {
-             *     test = 0;
-             * }
-             */
-
-            var_test.Emit(Instruction.LDCONST, 0);
-            var_test.Emit(Instruction.STVAR, my_var);
-            var_test.Emit(Instruction.LDVAR, my_var);
-            var_test.Emit(Instruction.RET);
-
-
-            Function local_test = module.CreateFunction("local_test", 2);
+            Function test_func = module.CreateFunction("test", 0);
 
             /*
-             * func local_test(x, y) {
-             *     var a = 2 * x;
-             *     var b = y + 3 * 2;
-             *     return a + b;
+             * func test() {
+             *     return 20 + 12;
              * }
              */
 
             /*
-             * LDCONST 0    (2)
-             * LDARG 0      (x)
-             * MUL
-             * STLOCAL 0    (a)
-             * LDCONST 1    (3)
-             * LDCONST 2    (2)
-             * MUL
-             * LDARG 1      (y)
-             * ADD
-             * STLOCAL 1    (b)
-             * LDLOCAL 0    (a)
-             * LDLOCAL 1    (b)
+             * LDCONST 
+             * LDCONST 
              * ADD
              * RET
              */
 
+            var n1 = module.AddConstant(new Constant.Number(20));
+            var n2 = module.AddConstant(new Constant.Number(12));
 
-            LocalVariable lcl_a = local_test.DeclareLocal();
-            LocalVariable lcl_b = local_test.DeclareLocal();
-
-            // var a = 2 * x;
-            local_test.Emit(Instruction.LDCONST, 0);
-            local_test.Emit(Instruction.LDARG, 0);
-            local_test.Emit(Instruction.MUL);
-            local_test.Emit(Instruction.STLOCAL, lcl_a);
-            // var b = y + 3 * 2;
-            local_test.Emit(Instruction.LDCONST, 1);
-            local_test.Emit(Instruction.LDCONST, 2);
-            local_test.Emit(Instruction.MUL);
-            local_test.Emit(Instruction.LDARG, 1);
-            local_test.Emit(Instruction.ADD);
-            local_test.Emit(Instruction.STLOCAL, lcl_b);
-            // return a + b;
-            local_test.Emit(Instruction.LDLOCAL, lcl_a);
-            local_test.Emit(Instruction.LDLOCAL, lcl_b);
-            local_test.Emit(Instruction.ADD);
-            local_test.Emit(Instruction.RET);
-
+            test_func.Emit(Opcode.LDCONST, n1);
+            test_func.Emit(Opcode.LDCONST, n2);
+            test_func.Emit(Opcode.ADD);
+            test_func.Emit(Opcode.RET);
 
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);

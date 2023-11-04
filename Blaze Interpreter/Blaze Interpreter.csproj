@@ -12,6 +12,7 @@
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -43,12 +44,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Interpreter\FuncEnvironment.cs" />
     <Compile Include="Interpreter\Interpreter.cs" />
     <Compile Include="Interpreter\ModuleEnvironment.cs" />
     <Compile Include="Interpreter\Types\BooleanValue.cs" />
+    <Compile Include="Interpreter\Types\FunctionValue.cs" />
+    <Compile Include="Interpreter\Types\IValue.cs" />
+    <Compile Include="Interpreter\Types\IValueBinOp.cs" />
+    <Compile Include="Interpreter\Types\IValueCallable.cs" />
+    <Compile Include="Interpreter\Types\NullValue.cs" />
     <Compile Include="Interpreter\Types\NumberValue.cs" />
-    <Compile Include="Interpreter\Types\Value.cs" />
-    <Compile Include="Interpreter\Types\ValueBinOp.cs" />
+    <Compile Include="Interpreter\Types\StringValue.cs" />
     <Compile Include="Module\Constant.cs" />
     <Compile Include="Module\Function.cs" />
     <Compile Include="Module\Module.cs" />

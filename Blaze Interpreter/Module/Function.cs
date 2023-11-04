@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 
 namespace VD.Blaze.Module
 {
+    public record struct Instruction(Opcode Id, byte Argument);
+
     public class Function
     {
         public int Index;
@@ -15,13 +17,13 @@ namespace VD.Blaze.Module
         public int NumOfArgs;
         public bool Varargs;
         public byte NumOfLocals { get; private set; }
-        public List<(Instruction inst, byte arg)> Instructions;
+        public List<Instruction> Instructions;
 
         public Function(Module module, Constant name, int numOfArgs, bool varargs)
         {
             Name = name;
             NumOfArgs = numOfArgs;
-            Instructions = new List<(Instruction inst, byte arg)>();
+            Instructions = new List<Instruction>();
             Varargs = varargs;
             ParentModule = module;
         }
@@ -29,32 +31,32 @@ namespace VD.Blaze.Module
         public Function(Module module, Constant name, int numOfArgs) : this(module, name, numOfArgs, false) { }
         public Function(Module module) : this(module, null, 0, false) { }
 
-        public void Emit(Instruction instruction, byte argument)
+        public void Emit(Opcode instruction, byte argument)
         {
-            Instructions.Add((instruction, argument));
+            Instructions.Add(new Instruction(instruction, argument));
         }
 
-        public void Emit(Instruction instruction, Constant constant)
+        public void Emit(Opcode instruction, Constant constant)
         {
-            Instructions.Add((instruction, (byte)constant.Index));
+            Instructions.Add(new Instruction(instruction, (byte)constant.Index));
         }
 
-        public void Emit(Instruction instruction, Variable mod_var)
+        public void Emit(Opcode instruction, Variable mod_var)
         {
-            Instructions.Add((instruction, (byte)mod_var.Name.Index));
+            Instructions.Add(new Instruction(instruction, (byte)mod_var.Name.Index));
         }
 
-        public void Emit(Instruction instruction, Function func)
+        public void Emit(Opcode instruction, Function func)
         {
-            Instructions.Add((instruction, (byte)func.Index));
+            Instructions.Add(new Instruction(instruction, (byte)func.Index));
         }
 
-        public void Emit(Instruction instruction, LocalVariable local)
+        public void Emit(Opcode instruction, LocalVariable local)
         {
-            Instructions.Add((instruction, local.Index));
+            Instructions.Add(new Instruction(instruction, local.Index));
         }
 
-        public void Emit(Instruction instruction)
+        public void Emit(Opcode instruction)
         {
             Emit(instruction, 0);
         }
@@ -82,6 +84,13 @@ namespace VD.Blaze.Module
             bw.Write((byte)NumOfArgs);
             bw.Write(Varargs);
             bw.Write(NumOfLocals);
+
+            if (Instructions[Instructions.Count - 1].Id != Opcode.RET)
+            {
+                Instructions.Add(new Instruction(Opcode.LDNULL, 0));
+                Instructions.Add(new Instruction(Opcode.RET, 0));
+            }
+
             bw.Write((ushort)Instructions.Count);
 
             foreach(var inst in Instructions)
@@ -93,9 +102,10 @@ namespace VD.Blaze.Module
                 // bw.Write(instruction);
 
                 // Big endian order, binarywriter only writes in little endian
-                bw.Write((byte)inst.inst);
-                bw.Write(inst.arg);
+                bw.Write((byte)inst.Id);
+                bw.Write(inst.Argument);
             }
+
         }
 
         public void FromBinary(BinaryReader br)
@@ -113,14 +123,14 @@ namespace VD.Blaze.Module
                 // ushort inst = br.ReadUInt16();
                 // byte arg = (byte)(inst & 0xff);
                 // byte inst_id = (byte)(inst >> 8);
-                Instruction inst_id = (Instruction)br.ReadByte();
+                Opcode inst_id = (Opcode)br.ReadByte();
                 byte arg = br.ReadByte();
-                Instructions.Add((inst_id, arg));
+                Instructions.Add(new Instruction(inst_id, arg));
             }
         }
     }
 
-    public enum Instruction
+    public enum Opcode
     {
         NOP, POP,
         

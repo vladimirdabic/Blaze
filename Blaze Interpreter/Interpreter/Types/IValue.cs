@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VD.Blaze.Interpreter
+namespace VD.Blaze.Interpreter.Types
 {
     public interface IValue
     {
@@ -16,7 +16,7 @@ namespace VD.Blaze.Interpreter
         /// <summary>
         /// Gets the string representation of the value
         /// </summary>
-        string ToString();
+        string AsString();
 
         /// <summary>
         /// Compares the value to another value

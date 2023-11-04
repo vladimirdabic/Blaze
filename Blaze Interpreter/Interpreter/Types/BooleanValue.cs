@@ -4,13 +4,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VD.Blaze.Interpreter
+namespace VD.Blaze.Interpreter.Types
 {
     public class BooleanValue : IValue
     {
         public bool Value;
 
         public BooleanValue(bool value) {  Value = value; }
+
+        public string AsString()
+        {
+            return $"{Value}";
+        }
 
         public IValue Copy()
         {

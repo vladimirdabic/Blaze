@@ -14,7 +14,7 @@ namespace VD.Blaze.Module
         public readonly List<Variable> Variables;
         public readonly List<Function> Functions;
 
-        private readonly Function _staticFunction;
+        private Function _staticFunction;
         private readonly Dictionary<string, Constant> _stringConstantMap;
 
         public Module()
@@ -38,8 +38,8 @@ namespace VD.Blaze.Module
             Variables.Add(func_var);
 
             // Initialize in the static function so parent modules can access it
-            _staticFunction.Emit(Instruction.LDFUNC, func);
-            _staticFunction.Emit(Instruction.STVAR, func_var);
+            _staticFunction.Emit(Opcode.LDFUNC, func);
+            _staticFunction.Emit(Opcode.STVAR, func_var);
 
             return func;
         }
@@ -79,6 +79,9 @@ namespace VD.Blaze.Module
 
         public void FromBinary(BinaryReader br)
         {
+            // Clear default static function
+            Functions.Clear();
+
             uint id = br.ReadUInt32();
 
             if (id != 0x6D7A6C62)
@@ -125,6 +128,8 @@ namespace VD.Blaze.Module
                 func.FromBinary(br);
                 Functions.Add(func);
             }
+
+            _staticFunction = Functions[0];
 
             ushort class_count = br.ReadUInt16();
         }
@@ -188,7 +193,7 @@ namespace VD.Blaze.Module
                 Console.WriteLine($"{name} (# args: {func.NumOfArgs}, # locals: {func.NumOfLocals}, Varargs: {func.Varargs})");
                 foreach (var inst in func.Instructions)
                 {
-                    Console.WriteLine($"    {inst.inst} {inst.arg}");
+                    Console.WriteLine($"    {inst.Id} {inst.Argument}");
                 }
             }
         }
