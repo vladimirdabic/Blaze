@@ -48,6 +48,7 @@
     <Compile Include="Interpreter\Interpreter.cs" />
     <Compile Include="Interpreter\ModuleEnvironment.cs" />
     <Compile Include="Interpreter\Types\BooleanValue.cs" />
+    <Compile Include="Interpreter\Types\BuiltinFunctionValue.cs" />
     <Compile Include="Interpreter\Types\FunctionValue.cs" />
     <Compile Include="Interpreter\Types\IValue.cs" />
     <Compile Include="Interpreter\Types\IValueBinOp.cs" />

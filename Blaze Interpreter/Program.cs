@@ -26,15 +26,35 @@ namespace Blaze_Interpreter
             Console.Write('\n');
             Console.ReadKey();
 
-            /*Interpreter interpreter = new Interpreter();
-            ModuleEnvironment env = interpreter.LoadModule(module);
 
-            var func = env.GetFunction("test");
-            IValue ret = interpreter.RunFunction(env, func, null);
+
+            Interpreter interpreter = new Interpreter();
+            ModuleEnvironment globalEnvironment = new ModuleEnvironment();
+
+            // Define print function
+            var print_func = new BuiltinFunctionValue("print", (Interpreter itp, List<IValue> args) =>
+            {
+                foreach (var arg in args)
+                    Console.Write($"{arg.AsString()} ");
+
+                Console.Write('\n');
+                return null;
+            });
+
+            globalEnvironment.Variables["print"] = new ModuleVariable(VariableType.PUBLIC, print_func);
+           
+
+            ModuleEnvironment env = interpreter.LoadModule(module);
+            env.Parent = globalEnvironment;
+            globalEnvironment.Children.Add(env);
 
             Console.WriteLine("Running function test: ");
+
+            var func = env.GetFunction("main");
+            IValue ret = interpreter.RunFunction(env, func, null);
+
             Console.WriteLine(ret.AsString());
-            Console.ReadKey();*/
+            Console.ReadKey();
         }
 
 

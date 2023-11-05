@@ -43,7 +43,7 @@ namespace VD.Blaze.Module
 
         public void Emit(Opcode instruction, Variable mod_var)
         {
-            Instructions.Add(new Instruction(instruction, (byte)mod_var.Index));
+            Instructions.Add(new Instruction(instruction, (byte)mod_var.Name.Index));
         }
 
         public void Emit(Opcode instruction, Function func)

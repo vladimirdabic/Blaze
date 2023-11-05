@@ -20,6 +20,17 @@ namespace VD.Blaze.Interpreter
         public Dictionary<string, ModuleVariable> Variables;
         public List<FunctionValue> Functions;
 
+        public ModuleEnvironment()
+        {
+            Module = null;
+            Parent = null;
+            Children = new List<ModuleEnvironment>();
+
+            Variables = new Dictionary<string, ModuleVariable>();
+            Functions = new List<FunctionValue>();
+            Constants = new List<IValue>();
+        }
+
         public ModuleEnvironment(Module.Module module, ModuleEnvironment parent)
         {
             Module = module;

@@ -50,7 +50,6 @@ namespace VD.Blaze.Interpreter.Types
             FuncEnvironment originalEnv = interpreter._env;
 
             env.Arguments = args ?? new List<IValue>();
-            // TODO: Populate with Blaze null instances
             env.Locals = new IValue[NumOfLocals];
 
             for (int i = 0; i < NumOfLocals; i++)
