@@ -25,6 +25,11 @@ namespace VD.Blaze.Lexer
             { "private", TokenType.PRIVATE },
             { "public", TokenType.PUBLIC },
             { "extern", TokenType.EXTERN },
+            { "true", TokenType.TRUE },
+            { "false", TokenType.FALSE },
+            { "null", TokenType.NULL },
+            { "try", TokenType.TRY },
+            { "catch", TokenType.CATCH },
         };
 
 

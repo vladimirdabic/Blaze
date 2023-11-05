@@ -10,12 +10,13 @@ namespace VD.Blaze.Generator
     public class LocalEnvironment
     {
         public LocalEnvironment Parent;
-        public Dictionary<string, LocalVariable> Locals = new Dictionary<string, LocalVariable>();
+        public List<Dictionary<string, LocalVariable>> Locals = new List<Dictionary<string, LocalVariable>>();
         public Dictionary<string, int> Args = new Dictionary<string, int>();
 
         public LocalEnvironment(LocalEnvironment parent)
         {
             Parent = parent;
+            Locals.Add(new Dictionary<string, LocalVariable>());
         }
 
         public LocalEnvironment(): this(null) { }
@@ -23,19 +24,43 @@ namespace VD.Blaze.Generator
 
         public void DefineLocal(string name, LocalVariable variable)
         {
-            Locals[name] = variable;
+            Locals[Locals.Count - 1][name] = variable;
         }
 
         public (LocalVariable, int) GetLocal(string name, int level = 0)
         {
-            if(Locals.ContainsKey(name))
+            var local = GetFromStack(name);
+
+            if (local is not null)
             {
-                return (Locals[name], level);
+                return (local, level);
             }
 
             if(Parent is not null) return Parent.GetLocal(name, level + 1);
 
             return (null, level);
+        }
+
+        private LocalVariable GetFromStack(string name)
+        {
+            for(int i = Locals.Count - 1; i >= 0; i--)
+            {
+                var locals = Locals[i];
+                if(locals.ContainsKey(name))
+                    return locals[name];
+            }
+
+            return null;
+        }
+
+        public void PushFrame()
+        {
+            Locals.Add(new Dictionary<string, LocalVariable>());
+        }
+
+        public void PopFrame()
+        {
+            Locals.RemoveAt(Locals.Count - 1);
         }
     }
 }

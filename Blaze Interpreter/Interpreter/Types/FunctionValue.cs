@@ -46,8 +46,7 @@ namespace VD.Blaze.Interpreter.Types
 
         public IValue Call(Interpreter interpreter, List<IValue> args)
         {
-            FuncEnvironment env = new FuncEnvironment(Closure);
-            FuncEnvironment originalEnv = interpreter._env;
+            FuncEnvironment env = new FuncEnvironment(Closure, interpreter);
 
             env.Arguments = args ?? new List<IValue>();
             env.Locals = new IValue[NumOfLocals];
@@ -55,17 +54,18 @@ namespace VD.Blaze.Interpreter.Types
             for (int i = 0; i < NumOfLocals; i++)
                 env.Locals[i] = Interpreter.NullInstance;
 
-            interpreter._env = env;
-
-            IValue ret = interpreter.Evaluate(Instructions);
-
-            interpreter._env = originalEnv;
+            IValue ret = env.Evaluate(Instructions);
             return ret;
         }
 
         public string AsString()
         {
             return $"<function {Name ?? "<anonymous>"}>";
+        }
+
+        public bool AsBoolean()
+        {
+            return true;
         }
     }
 }

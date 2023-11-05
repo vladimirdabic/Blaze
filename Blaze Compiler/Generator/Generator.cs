@@ -268,6 +268,57 @@ namespace VD.Blaze.Generator
 
             throw new GeneratorException(_source, _line, $"Assignment to an undefined variable '{assignVar.Name}'");
         }
+
+        public void VisitBool(Expression.Boolean boolean)
+        {
+            _function.Emit(Opcode.LDBOOL, (byte)(boolean.Value ? 1 : 0));
+        }
+
+        public void VisitNull(Expression.Null nullExpr)
+        {
+            _function.Emit(Opcode.LDNULL);
+        }
+
+        public void VisitBlock(Statement.Block block)
+        {
+            _localEnv.PushFrame();
+
+            foreach(var stmt in block.Statements)
+            {
+                Evaluate(stmt);
+            }
+
+            _localEnv.PopFrame();
+        }
+
+        public void VisitTryCatch(Statement.TryCatch tryCatch)
+        {
+            int catchInstIdx = _function.Instructions.Count;
+            _function.Emit(Opcode.CATCH, 0);
+
+            Evaluate(tryCatch.TryStmt);
+
+            _function.Emit(Opcode.TRY_END);
+            int jmpInstIdx = _function.Instructions.Count;
+            _function.Emit(Opcode.JMP, 0);
+
+            // Modify arg of catch instruction 
+            _function.Instructions[catchInstIdx] = new Instruction(Opcode.CATCH, (byte)(_function.Instructions.Count - catchInstIdx));
+
+            _localEnv.PushFrame();
+            if(tryCatch.CatchName is not null)
+            {
+                LocalVariable catchVar = _function.DeclareLocal();
+                _localEnv.DefineLocal(tryCatch.CatchName, catchVar);
+                _function.Emit(Opcode.STLOCAL, catchVar);
+            }
+            
+            Evaluate(tryCatch.CatchStmt);
+            _localEnv.PopFrame();
+
+            // Modify arg of jmp instruction 
+            _function.Instructions[jmpInstIdx] = new Instruction(Opcode.JMP, (byte)(_function.Instructions.Count - jmpInstIdx));
+        }
     }
 
     public class GeneratorException : Exception

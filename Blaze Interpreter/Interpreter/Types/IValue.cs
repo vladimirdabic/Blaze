@@ -19,6 +19,12 @@ namespace VD.Blaze.Interpreter.Types
         string AsString();
 
         /// <summary>
+        /// Gets the boolean representation of the value
+        /// </summary>
+        /// <returns></returns>
+        bool AsBoolean();
+
+        /// <summary>
         /// Compares the value to another value
         /// </summary>
         /// <param name="other">The other value</param>

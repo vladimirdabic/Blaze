@@ -104,6 +104,36 @@ namespace VD.Blaze.Parser
                 return new Statement.LocalVariableDef(name.Location, (string)name.Value, value);
             }
 
+            if (Match(TokenType.OPEN_BRACE))
+            {
+                var body = new List<Statement>();
+
+                while (Available() && !Check(TokenType.CLOSE_BRACE))
+                {
+                    body.Add(ParseStatement());
+                }
+
+                Consume(TokenType.CLOSE_BRACE, "Expected '}' after statement block");
+                return new Statement.Block(body);
+            }
+
+            if (Match(TokenType.TRY))
+            {
+                Statement tryStmt = ParseStatement();
+                Consume(TokenType.CATCH, "Expected catch after try");
+                string name = null;
+
+                if(Match(TokenType.OPEN_PAREN))
+                {
+                    name = (string)Consume(TokenType.IDENTIFIER, "Expected catch variable name").Value;
+                    Consume(TokenType.CLOSE_PAREN, "Expected ')' after catch variable name");
+                }
+
+                Statement catchStmt = ParseStatement();
+
+                return new Statement.TryCatch(tryStmt, catchStmt, name);
+            }
+
             Expression expr = ParseExpression();
 
             // Only allow Assignments and Function Calls
@@ -209,6 +239,19 @@ namespace VD.Blaze.Parser
 
             if (Match(TokenType.IDENTIFIER))
                 return new Expression.Variable(Prev());
+
+            if (Match(TokenType.NULL))
+                return new Expression.Null();
+
+            if (Match(TokenType.TRUE, TokenType.FALSE))
+                return new Expression.Boolean(Prev().Type == TokenType.TRUE);
+
+            if (Match(TokenType.OPEN_PAREN))
+            {
+                Expression expr = ParseExpression();
+                Consume(TokenType.CLOSE_PAREN, "Expected ')'");
+                return expr;
+            }
 
             throw new ParserException(Peek().Location.Source, Peek().Location.Line, "Expected an expression");
         }

@@ -17,6 +17,11 @@ namespace VD.Blaze.Interpreter.Types
             Callback = callback;
         }
 
+        public bool AsBoolean()
+        {
+            return true;
+        }
+
         public string AsString()
         {
             return $"<built-in function {Name}>";

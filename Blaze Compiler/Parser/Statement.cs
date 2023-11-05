@@ -20,6 +20,8 @@ namespace VD.Blaze.Parser
             void VisitTopFuncDef(TopFuncDef topFuncDef);
             void VisitReturn(Return returnStmt);
             void VisitLocalVarDef(LocalVariableDef localVarDef);
+            void VisitBlock(Block block);
+            void VisitTryCatch(TryCatch tryCatch);
         }
 
         public abstract void Accept(IVisitor visitor);
@@ -130,6 +132,40 @@ namespace VD.Blaze.Parser
             public override void Accept(IVisitor visitor)
             {
                 visitor.VisitLocalVarDef(this);
+            }
+        }
+
+        public class Block : Statement
+        {
+            public List<Statement> Statements;
+
+            public Block(List<Statement> statements)
+            {
+                Statements = statements;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.VisitBlock(this);
+            }
+        }
+
+        public class TryCatch : Statement
+        {
+            public Statement TryStmt;
+            public Statement CatchStmt;
+            public string CatchName;
+
+            public TryCatch(Statement tryStmt, Statement catchStmt, string catchName)
+            {
+                TryStmt = tryStmt;
+                CatchStmt = catchStmt;
+                CatchName = catchName;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.VisitTryCatch(this);
             }
         }
     }

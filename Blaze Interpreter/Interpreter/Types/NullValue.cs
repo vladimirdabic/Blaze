@@ -27,5 +27,10 @@ namespace VD.Blaze.Interpreter.Types
         {
             return $"null";
         }
+
+        public bool AsBoolean()
+        {
+            return false;
+        }
     }
 }

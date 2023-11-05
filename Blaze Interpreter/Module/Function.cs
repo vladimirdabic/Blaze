@@ -132,7 +132,7 @@ namespace VD.Blaze.Module
         
         EXTENDED_ARG,
 
-        LDNULL, LDARG, LDCONST, LDLOCAL, LDVAR, LDFUNC, LDCLASS,
+        LDNULL, LDARG, LDCONST, LDLOCAL, LDVAR, LDFUNC, LDCLASS, LDBOOL,
         STLOCAL, STVAR, STARG,
 
         CALL, RET,
@@ -140,7 +140,9 @@ namespace VD.Blaze.Module
         // INTDIV pushes the result and the remainder on the stack [..., RES, REMAINDER]
         ADD, SUB, MUL, DIV, INTDIV,
 
-        THROW, CATCH,
+        THROW, CATCH, TRY_END,
+
+        EQ, LT, LTE, NOT, JMP, JMPA, JMPT, JMPF
     }
 
     public class LocalVariable

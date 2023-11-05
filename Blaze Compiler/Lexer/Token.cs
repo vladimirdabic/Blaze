@@ -61,6 +61,8 @@ namespace VD.Blaze.Lexer
         // Reserved words
         IF, WHILE, BREAK, RETURN,
         FUNC, CLASS, VAR, PRIVATE, PUBLIC, EXTERN,
+        TRUE, FALSE, NULL,
+        TRY, CATCH,
 
         // End of file
         EOF

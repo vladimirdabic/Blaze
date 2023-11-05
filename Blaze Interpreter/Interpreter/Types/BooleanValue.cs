@@ -12,6 +12,11 @@ namespace VD.Blaze.Interpreter.Types
 
         public BooleanValue(bool value) {  Value = value; }
 
+        public bool AsBoolean()
+        {
+            return Value;
+        }
+
         public string AsString()
         {
             return $"{Value}";

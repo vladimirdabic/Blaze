@@ -13,6 +13,8 @@ namespace VD.Blaze.Parser
         {
             void VisitNumber(Number number);
             void VisitString(String str);
+            void VisitBool(Boolean boolean);
+            void VisitNull(Null nullExpr);
             void VisitBinaryOp(BinaryOperation binOp);
             void VisitVariable(Variable variable);
             void VisitCall(Call call);
@@ -50,6 +52,30 @@ namespace VD.Blaze.Parser
             public override void Accept(IVisitor visitor)
             {
                 visitor.VisitString(this);
+            }
+        }
+
+        public class Boolean : Expression
+        {
+            public bool Value;
+
+            public Boolean(bool value)
+            {
+                Value = value;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.VisitBool(this);
+            }
+        }
+
+        public class Null : Expression
+        {
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.VisitNull(this);
             }
         }
 
