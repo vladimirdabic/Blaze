@@ -92,7 +92,7 @@ namespace VD.Blaze.Interpreter
                     if(Parent is not null)
                     {
                         // Maybe have an internal visibility to allow children of parent to access internal variables
-                        ModuleVariable value = Parent.GetPublicVariable(name);
+                        ModuleVariable value = Parent.GetPublicVariable(name, this);
                         if (value is not null) return value;
                     }
 
@@ -112,7 +112,7 @@ namespace VD.Blaze.Interpreter
         /// Gets a public variable from this module
         /// </summary>
         /// <param name="name">Variable name</param>
-        public ModuleVariable GetPublicVariable(string name)
+        public ModuleVariable GetPublicVariable(string name, ModuleEnvironment callerChild = null)
         {
             if (Variables.ContainsKey(name))
             {
@@ -123,8 +123,11 @@ namespace VD.Blaze.Interpreter
                     // Check children for same variable
                     foreach (var child in Children)
                     {
-                        ModuleVariable value = child.GetPublicVariable(name);
-                        if (value is not null) return value;
+                        if (child != callerChild)
+                        {
+                            ModuleVariable value = child.GetPublicVariable(name);
+                            if (value is not null) return value;
+                        }
                     }
 
                     // Not public so it can't be accessed
@@ -138,8 +141,11 @@ namespace VD.Blaze.Interpreter
                 // Check children if not found
                 foreach (var child in Children)
                 {
-                    ModuleVariable value = child.GetPublicVariable(name);
-                    if (value is not null) return value;
+                    if (child != callerChild)
+                    {
+                        ModuleVariable value = child.GetPublicVariable(name);
+                        if (value is not null) return value;
+                    }
                 }
             }
 

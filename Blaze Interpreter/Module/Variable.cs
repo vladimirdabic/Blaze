@@ -12,15 +12,17 @@ namespace VD.Blaze.Module
         public Module ParentModule;
         public VariableType Type;
         public Constant Name;
+        public int Index;
 
-        public Variable(Module module, VariableType type, Constant name)
+        public Variable(Module module, VariableType type, Constant name, int index)
         {
             Type = type;
             Name = name;
             ParentModule = module;
+            Index = index;
         }
 
-        public Variable(Module module) : this(module, VariableType.PRIVATE, null)
+        public Variable(Module module) : this(module, VariableType.PRIVATE, null, 0)
         {
         }
 

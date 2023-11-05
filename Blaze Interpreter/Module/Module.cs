@@ -34,7 +34,7 @@ namespace VD.Blaze.Module
             func.Index = Functions.Count;
             Functions.Add(func);
 
-            Variable func_var = new Variable(this, visibility, name_const);
+            Variable func_var = new Variable(this, visibility, name_const, Variables.Count);
             Variables.Add(func_var);
 
             // Initialize in the static function so parent modules can access it
@@ -55,7 +55,7 @@ namespace VD.Blaze.Module
         public Variable DefineVariable(string name, VariableType type)
         {
             Constant name_const = AddConstant(new Constant.String(name));
-            Variable mod_var = new Variable(this, type, name_const);
+            Variable mod_var = new Variable(this, type, name_const, Variables.Count);
             Variables.Add(mod_var);
             return mod_var;
         }
@@ -180,9 +180,10 @@ namespace VD.Blaze.Module
             }
 
             Console.WriteLine("\n== VARIABLES ==");
-            foreach(var mod_var in Variables)
+            for(int i = 0; i < Variables.Count; ++i)
             {
-                Console.WriteLine($"{((Constant.String)mod_var.Name).Value} ({mod_var.Type})");
+                var mod_var = Variables[i];
+                Console.WriteLine($"{i}: {((Constant.String)mod_var.Name).Value} ({mod_var.Type})");
             }
 
             Console.WriteLine("\n== FUNCTIONS ==");

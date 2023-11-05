@@ -15,6 +15,8 @@ namespace VD.Blaze.Parser
             void VisitString(String str);
             void VisitBinaryOp(BinaryOperation binOp);
             void VisitVariable(Variable variable);
+            void VisitCall(Call call);
+            void VisitAssignVar(AssignVariable assignVar);
         }
 
         public abstract void Accept(IVisitor visitor);
@@ -82,6 +84,42 @@ namespace VD.Blaze.Parser
             public override void Accept(IVisitor visitor)
             {
                 visitor.VisitBinaryOp(this);
+            }
+        }
+
+        public class Call : Expression
+        {
+            public Expression Callee;
+            public List<Expression> Arguments;
+
+            public Call(Expression callee, List<Expression> arguments)
+            {
+                Callee = callee;
+                Arguments = arguments;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.VisitCall(this);
+            }
+        }
+
+        public class AssignVariable : Expression
+        {
+            public TokenLocation Location;
+            public string Name;
+            public Expression Value;
+
+            public AssignVariable(TokenLocation location, string name, Expression value)
+            {
+                Location = location;
+                Name = name;
+                Value = value;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.VisitAssignVar(this);
             }
         }
     }

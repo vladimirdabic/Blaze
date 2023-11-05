@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using VD.Blaze.Lexer;
@@ -17,6 +18,8 @@ namespace VD.Blaze.Parser
             void VisitDefinitions(Definitions definitions);
             void VisitTopVarDef(TopVariableDef topVarDef);
             void VisitTopFuncDef(TopFuncDef topFuncDef);
+            void VisitReturn(Return returnStmt);
+            void VisitLocalVarDef(LocalVariableDef localVarDef);
         }
 
         public abstract void Accept(IVisitor visitor);
@@ -93,6 +96,40 @@ namespace VD.Blaze.Parser
             public override void Accept(IVisitor visitor)
             {
                 visitor.VisitTopFuncDef(this);
+            }
+        }
+
+        public class Return : Statement
+        {
+            public Expression Value;
+
+            public Return(Expression value)
+            {
+                Value = value;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.VisitReturn(this);
+            }
+        }
+
+        public class LocalVariableDef : Statement
+        {
+            public TokenLocation Location;
+            public string Name;
+            public Expression Value;
+
+            public LocalVariableDef(TokenLocation location, string name, Expression value)
+            {
+                Location = location;
+                Name = name;
+                Value = value;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.VisitLocalVarDef(this);
             }
         }
     }

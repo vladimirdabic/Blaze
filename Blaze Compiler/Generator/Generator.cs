@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using VD.Blaze.Module;
 using VD.Blaze.Parser;
 using VD.Blaze.Lexer;
-using static VD.Blaze.Parser.Statement;
 using System.Runtime.Remoting.Activation;
 
 namespace VD.Blaze.Generator
@@ -97,12 +96,16 @@ namespace VD.Blaze.Generator
             _function = _module.CreateFunction(topFuncDef.Name, topFuncDef.Args.Count, visibility);
             _functions[topFuncDef.Name] = _function;
             _localEnv = new LocalEnvironment(_localEnv);
+            
+            // CreateFunction adds a variable binding for the function, it's gonna be the last one in the list after the call
+            _variables[topFuncDef.Name] = _module.Variables[_module.Variables.Count - 1];
 
             // Setup arg indicies
             for(int i = 0;  i < topFuncDef.Args.Count; i++)
             {
                 _localEnv.Args[topFuncDef.Args[i]] = i;
             }
+
 
             foreach (Statement stmt in topFuncDef.Body)
             {
@@ -164,7 +167,7 @@ namespace VD.Blaze.Generator
             }
         }
 
-        public void VisitExprStmt(ExprStmt exprStmt)
+        public void VisitExprStmt(Statement.ExprStmt exprStmt)
         {
             Evaluate(exprStmt.Expr);
             _function.Emit(Opcode.POP, 1);
@@ -199,6 +202,71 @@ namespace VD.Blaze.Generator
             }
 
             throw new GeneratorException(_source, _line, $"Undefined variable '{name}'");
+        }
+
+        public void VisitCall(Expression.Call call)
+        {
+            for(int i = call.Arguments.Count - 1; i >= 0; i--)
+            {
+                Evaluate(call.Arguments[i]);
+            }
+
+            Evaluate(call.Callee);
+
+            _function.Emit(Opcode.CALL, (byte)call.Arguments.Count);
+        }
+
+        public void VisitReturn(Statement.Return returnStmt)
+        {
+            if(returnStmt.Value is null)
+                _function.Emit(Opcode.LDNULL);
+            else
+                Evaluate(returnStmt.Value);
+
+            _function.Emit(Opcode.RET);
+        }
+
+        public void VisitLocalVarDef(Statement.LocalVariableDef localVarDef)
+        {
+            LocalVariable local = _function.DeclareLocal();
+            _localEnv.DefineLocal(localVarDef.Name, local);
+
+            if(localVarDef.Value is not null)
+            {
+                Evaluate(localVarDef.Value);
+                _function.Emit(Opcode.STLOCAL, local);
+            }
+        }
+
+        public void VisitAssignVar(Expression.AssignVariable assignVar)
+        {
+            Evaluate(assignVar.Value);
+
+            (LocalVariable local, int level) = _localEnv.GetLocal(assignVar.Name);
+
+            if (local is not null)
+            {
+                if (level != 0)
+                    _function.Emit(Opcode.EXTENDED_ARG, (byte)level);
+
+                _function.Emit(Opcode.STLOCAL, local);
+                return;
+            }
+
+            if (_localEnv.Args.ContainsKey(assignVar.Name))
+            {
+                _function.Emit(Opcode.STARG, (byte)_localEnv.Args[assignVar.Name]);
+                return;
+            }
+
+            if (_variables.ContainsKey(assignVar.Name))
+            {
+                Variable moduleVar = _variables[assignVar.Name];
+                _function.Emit(Opcode.STVAR, moduleVar);
+                return;
+            }
+
+            throw new GeneratorException(_source, _line, $"Assignment to an undefined variable '{assignVar.Name}'");
         }
     }
 

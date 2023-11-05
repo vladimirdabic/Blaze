@@ -46,7 +46,7 @@ namespace VD.Blaze.Parser
             if(Match(TokenType.VAR))
             {
                 Token name = Consume(TokenType.IDENTIFIER, "Expected variable name after 'var'");
-                Consume(TokenType.SEMICOLON, "Expected ';'");
+                Consume(TokenType.SEMICOLON, "Expected ';' after variable declaration");
 
                 return new Statement.TopVariableDef(visibility, name.Location, (string)name.Value);
             }
@@ -87,17 +87,53 @@ namespace VD.Blaze.Parser
 
         private Statement ParseStatement()
         {
+            if(Match(TokenType.RETURN))
+            {
+                Expression value = ParseExpression();
+                Consume(TokenType.SEMICOLON, "Expected ';' after return statement");
+
+                return new Statement.Return(value);
+            }
+
+            if (Match(TokenType.VAR))
+            {
+                Token name = Consume(TokenType.IDENTIFIER, "Expected variable name after 'var'");
+                Expression value = Match(TokenType.EQUALS) ? ParseExpression() : null;
+                Consume(TokenType.SEMICOLON, "Expected ';' after variable declaration");
+
+                return new Statement.LocalVariableDef(name.Location, (string)name.Value, value);
+            }
 
             Expression expr = ParseExpression();
-            Consume(TokenType.SEMICOLON, "Expected ';' after statement");
 
-            // TODO: Only allow Assignments and Function Calls
+            // Only allow Assignments and Function Calls
+            if(!(expr is Expression.Call || expr is Expression.AssignVariable))
+                throw new ParserException(Peek().Location.Source, Peek().Location.Line, "Expected a statement");
+
+            Consume(TokenType.SEMICOLON, "Expected ';' after statement");
             return new Statement.ExprStmt(expr);
         }
 
         private Expression ParseExpression()
         {
-            return ParseAdd();
+            return ParseAssign();
+        }
+
+        private Expression ParseAssign()
+        {
+            Expression left = ParseAdd();
+
+            while(Match(TokenType.EQUALS))
+            {
+                if(left is Expression.Variable variable)
+                {
+                    Expression value = ParseExpression();
+                    left = new Expression.AssignVariable(variable.Data.Location, (string)variable.Data.Value, value);
+                }
+                // TODO: Assign to indexing operations
+            }
+
+            return left;
         }
 
         private Expression ParseAdd()
@@ -115,12 +151,49 @@ namespace VD.Blaze.Parser
 
         private Expression ParseMultiply()
         {
-            Expression left = ParsePrimary();
+            Expression left = ParseCall();
 
             while (Match(TokenType.STAR, TokenType.SLASH))
             {
                 TokenType op = Prev().Type;
-                left = new Expression.BinaryOperation(left, ParsePrimary(), op);
+                left = new Expression.BinaryOperation(left, ParseCall(), op);
+            }
+
+            return left;
+        }
+
+        // Parse call and indexing
+        private Expression ParseCall() {
+            Expression left = ParsePrimary();
+
+            while(true)
+            {
+                if(Match(TokenType.OPEN_PAREN))
+                {
+                    var args = new List<Expression>();
+                    
+                    if(!Check(TokenType.CLOSE_PAREN))
+                    {
+                        while (true)
+                        {
+                            args.Add(ParseExpression());
+                            if (Check(TokenType.CLOSE_PAREN) || !Available()) break;
+                            Consume(TokenType.COMMA, "Expected ',' after function argument");
+                        }
+                    }
+
+                    Consume(TokenType.CLOSE_PAREN, "Expected ')' after function arguments");
+
+                    left = new Expression.Call(left, args);
+                }
+                else if(Match(TokenType.OPEN_SQUARE))
+                {
+                    // TODO: Indexing
+                }
+                else
+                {
+                    break;
+                }
             }
 
             return left;
