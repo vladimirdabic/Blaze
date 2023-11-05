@@ -26,7 +26,7 @@ namespace Blaze_Interpreter
             Console.Write('\n');
             Console.ReadKey();
 
-            Interpreter interpreter = new Interpreter();
+            /*Interpreter interpreter = new Interpreter();
             ModuleEnvironment env = interpreter.LoadModule(module);
 
             var func = env.GetFunction("test");
@@ -34,7 +34,7 @@ namespace Blaze_Interpreter
 
             Console.WriteLine("Running function test: ");
             Console.WriteLine(ret.AsString());
-            Console.ReadKey();
+            Console.ReadKey();*/
         }
 
 
@@ -66,23 +66,32 @@ namespace Blaze_Interpreter
 
             /*
              * func test() {
-             *     return 20 + 12;
+             *     var x = 20;
+             *     return x + 12;
              * }
              */
 
             /*
              * LDCONST 
+             * STLOCAL 0
+             * LDLOCAL 0
              * LDCONST 
              * ADD
              * RET
              */
 
+            var varx = test_func.DeclareLocal();
+
             var n1 = module.AddConstant(new Constant.Number(20));
             var n2 = module.AddConstant(new Constant.Number(12));
 
             test_func.Emit(Opcode.LDCONST, n1);
+            test_func.Emit(Opcode.STLOCAL, varx);
+
+            test_func.Emit(Opcode.LDLOCAL, varx);
             test_func.Emit(Opcode.LDCONST, n2);
             test_func.Emit(Opcode.ADD);
+
             test_func.Emit(Opcode.RET);
 
             MemoryStream stream = new MemoryStream();

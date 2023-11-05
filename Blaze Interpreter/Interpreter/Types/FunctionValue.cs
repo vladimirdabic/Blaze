@@ -53,6 +53,9 @@ namespace VD.Blaze.Interpreter.Types
             // TODO: Populate with Blaze null instances
             env.Locals = new IValue[NumOfLocals];
 
+            for (int i = 0; i < NumOfLocals; i++)
+                env.Locals[i] = Interpreter.NullInstance;
+
             interpreter._env = env;
 
             IValue ret = interpreter.Evaluate(Instructions);

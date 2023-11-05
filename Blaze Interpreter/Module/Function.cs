@@ -70,11 +70,7 @@ namespace VD.Blaze.Module
 
         public LocalVariable DeclareLocal()
         {
-            return new LocalVariable()
-            {
-                Index = NumOfLocals++,
-                Owner = this
-            };
+            return new LocalVariable(this, NumOfLocals++);
         }
 
         public void ToBinary(BinaryWriter bw)
@@ -85,7 +81,7 @@ namespace VD.Blaze.Module
             bw.Write(Varargs);
             bw.Write(NumOfLocals);
 
-            if (Instructions[Instructions.Count - 1].Id != Opcode.RET)
+            if (Instructions.Count == 0 || (Instructions[Instructions.Count - 1].Id != Opcode.RET))
             {
                 Instructions.Add(new Instruction(Opcode.LDNULL, 0));
                 Instructions.Add(new Instruction(Opcode.RET, 0));
@@ -137,17 +133,25 @@ namespace VD.Blaze.Module
         EXTENDED_ARG,
 
         LDNULL, LDARG, LDCONST, LDLOCAL, LDVAR, LDFUNC, LDCLASS,
-        STLOCAL, STVAR,
+        STLOCAL, STVAR, STARG,
 
         CALL, RET,
         
         // INTDIV pushes the result and the remainder on the stack [..., RES, REMAINDER]
-        ADD, SUB, MUL, DIV, INTDIV
+        ADD, SUB, MUL, DIV, INTDIV,
+
+        THROW, CATCH,
     }
 
-    public struct LocalVariable
+    public class LocalVariable
     {
         public Function Owner;
         public byte Index;
+
+        public LocalVariable(Function owner, byte index)
+        {
+            Owner = owner;
+            Index = index;
+        }
     }
 }

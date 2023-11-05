@@ -17,14 +17,17 @@ namespace VD.Blaze.Interpreter
         internal FuncEnvironment _env;
 
         private Stack<IValue> _stack;
-        private int _current = 0;
-        private bool _running = true;
+        private List<Instruction> _instructions;
+        private int _current;
+        private bool _running;
+        private readonly Stack<(List<Instruction> instructions, int current, bool running)> _stateStack;
 
-        private static readonly NullValue _nullValue = new NullValue();
+        public static readonly NullValue NullInstance = new NullValue();
 
         public Interpreter()
         {
             _stack = new Stack<IValue>();
+            _stateStack = new Stack<(List<Instruction>, int, bool)>();
         }
 
         public ModuleEnvironment LoadModule(Module.Module module)
@@ -51,21 +54,21 @@ namespace VD.Blaze.Interpreter
         {
             _current = 0;
             _running = true;
+            _instructions = instructions;
 
-            // TODO: Change to instance of Blaze null value
-            IValue result = _nullValue;
+            IValue result = NullInstance;
             _stack.Clear();
             
             while(_running)
             {
-                int oparg = instructions[_current].Argument;
-                Opcode opcode = instructions[_current].Id;
+                int oparg = _instructions[_current].Argument;
+                Opcode opcode = _instructions[_current].Id;
 
                 while(opcode == Opcode.EXTENDED_ARG)
                 {
                     _current++;
-                    opcode = instructions[_current].Id;
-                    oparg = (oparg << 8) | instructions[_current].Argument;
+                    opcode = _instructions[_current].Id;
+                    oparg = (oparg << 8) | _instructions[_current].Argument;
                 }
 
                 _current++;
@@ -76,11 +79,14 @@ namespace VD.Blaze.Interpreter
                         break;
 
                     case Opcode.POP:
-                        _stack.Pop();
-                        break;
+                    {
+                        for (int i = 0; i < oparg; ++i)
+                            _stack.Pop();
+                    }
+                    break;
 
                     case Opcode.LDNULL:
-                        _stack.Push(_nullValue);
+                        _stack.Push(NullInstance);
                         break;
 
                     case Opcode.LDARG:
@@ -95,7 +101,7 @@ namespace VD.Blaze.Interpreter
                     {
                         // 00 00 UPLEVEL INDEX
                         int idx = oparg & 0xff;
-                        int uplevel = oparg & (0xff << 8);
+                        int uplevel = oparg >> 8;
 
                         // TODO: Run up the FuncEnv list with uplevel
 
@@ -130,7 +136,7 @@ namespace VD.Blaze.Interpreter
                     {
                         // 00 00 UPLEVEL INDEX
                         int idx = oparg & 0xff;
-                        int uplevel = oparg & (0xff << 8);
+                        int uplevel = oparg >> 8;
 
                         // TODO: Run up the FuncEnv list with uplevel
 
@@ -152,6 +158,10 @@ namespace VD.Blaze.Interpreter
                         }
                     } break;
 
+                    case Opcode.STARG:
+                        _env.Arguments[oparg] = _stack.Pop();
+                        break;
+
                     case Opcode.CALL:
                     {
                         IValue value = _stack.Pop();
@@ -166,8 +176,12 @@ namespace VD.Blaze.Interpreter
                         for(int i = 0; i < oparg; ++i)
                             args.Add(_stack.Pop());
 
+                        _stateStack.Push((_instructions, _current, _running));
+
                         // Push result
                         _stack.Push(((IValueCallable)value).Call(this, args));
+
+                        (_instructions, _current, _running) = _stateStack.Pop();
                     } break;
 
                     case Opcode.RET:
@@ -178,8 +192,8 @@ namespace VD.Blaze.Interpreter
                     // BINOPS
                     case Opcode.ADD:
                     {
-                        IValue left = _stack.Pop();
                         IValue right = _stack.Pop();
+                        IValue left = _stack.Pop();
 
                         if(left is not IValueBinOp)
                         {
@@ -198,8 +212,8 @@ namespace VD.Blaze.Interpreter
 
                     case Opcode.SUB:
                     {
-                        IValue left = _stack.Pop();
                         IValue right = _stack.Pop();
+                        IValue left = _stack.Pop();
 
                         if(left is not IValueBinOp)
                         {
@@ -218,8 +232,8 @@ namespace VD.Blaze.Interpreter
 
                     case Opcode.MUL:
                     {
-                        IValue left = _stack.Pop();
                         IValue right = _stack.Pop();
+                        IValue left = _stack.Pop();
 
                         if(left is not IValueBinOp)
                         {
@@ -238,8 +252,8 @@ namespace VD.Blaze.Interpreter
 
                     case Opcode.DIV:
                     {
-                        IValue left = _stack.Pop();
                         IValue right = _stack.Pop();
+                        IValue left = _stack.Pop();
 
                         if(left is not IValueBinOp)
                         {

@@ -9,15 +9,33 @@ namespace VD.Blaze.Parser
 {
     public abstract class Statement
     {
+        public int Line;
+
         public interface IVisitor
         {
+            void VisitExprStmt(ExprStmt exprStmt);
             void VisitDefinitions(Definitions definitions);
             void VisitTopVarDef(TopVariableDef topVarDef);
-            void VisitTopFuncDef(TopFuncDef topVarDef);
+            void VisitTopFuncDef(TopFuncDef topFuncDef);
         }
 
         public abstract void Accept(IVisitor visitor);
 
+
+        public class ExprStmt : Statement
+        {
+            public Expression Expr;
+
+            public ExprStmt(Expression expr)
+            {
+                Expr = expr;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.VisitExprStmt(this);
+            }
+        }
 
         public class Definitions : Statement
         {

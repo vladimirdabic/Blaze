@@ -26,7 +26,10 @@ namespace VD.Blaze.Parser
 
             while(Available())
             {
-                definitions.Add(ParseTopDef());
+                int line = Peek().Location.Line;
+                Statement topDef = ParseTopDef();
+                topDef.Line = line;
+                definitions.Add(topDef);
             }
 
             return new Statement.Definitions(definitions);
@@ -84,7 +87,57 @@ namespace VD.Blaze.Parser
 
         private Statement ParseStatement()
         {
-            return null;
+
+            Expression expr = ParseExpression();
+            Consume(TokenType.SEMICOLON, "Expected ';' after statement");
+
+            // TODO: Only allow Assignments and Function Calls
+            return new Statement.ExprStmt(expr);
+        }
+
+        private Expression ParseExpression()
+        {
+            return ParseAdd();
+        }
+
+        private Expression ParseAdd()
+        {
+            Expression left = ParseMultiply();
+
+            while(Match(TokenType.PLUS, TokenType.MINUS))
+            {
+                TokenType op = Prev().Type;
+                left = new Expression.BinaryOperation(left, ParseMultiply(), op);
+            }
+
+            return left;
+        }
+
+        private Expression ParseMultiply()
+        {
+            Expression left = ParsePrimary();
+
+            while (Match(TokenType.STAR, TokenType.SLASH))
+            {
+                TokenType op = Prev().Type;
+                left = new Expression.BinaryOperation(left, ParsePrimary(), op);
+            }
+
+            return left;
+        }
+
+        private Expression ParsePrimary()
+        {
+            if (Match(TokenType.NUMBER))
+                return new Expression.Number((double)Prev().Value);
+
+            if (Match(TokenType.STRING))
+                return new Expression.String((string)Prev().Value);
+
+            if (Match(TokenType.IDENTIFIER))
+                return new Expression.Variable(Prev());
+
+            throw new ParserException(Peek().Location.Source, Peek().Location.Line, "Expected an expression");
         }
 
         // Helper functions

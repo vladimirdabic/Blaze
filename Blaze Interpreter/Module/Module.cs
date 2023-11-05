@@ -27,14 +27,14 @@ namespace VD.Blaze.Module
             _staticFunction = CreateAnonymousFunction(0);
         }
 
-        public Function CreateFunction(string name, int num_args)
+        public Function CreateFunction(string name, int num_args, VariableType visibility = VariableType.PRIVATE)
         {
             Constant name_const = AddConstant(new Constant.String(name));
             Function func = new Function(this, name_const, num_args);
             func.Index = Functions.Count;
             Functions.Add(func);
 
-            Variable func_var = new Variable(this, VariableType.PRIVATE, name_const);
+            Variable func_var = new Variable(this, visibility, name_const);
             Variables.Add(func_var);
 
             // Initialize in the static function so parent modules can access it

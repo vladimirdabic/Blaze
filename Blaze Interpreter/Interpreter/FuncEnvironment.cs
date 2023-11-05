@@ -12,11 +12,13 @@ namespace VD.Blaze.Interpreter
         public FuncEnvironment Parent;
         public List<IValue> Arguments;
         public IValue[] Locals;
+        public Stack<int> ExceptionStack;
 
         public FuncEnvironment(FuncEnvironment parent)
         {
             Parent = parent;
             Arguments = new List<IValue>();
+            ExceptionStack = new Stack<int>();
         }
     }
 }

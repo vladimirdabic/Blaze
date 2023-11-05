@@ -59,7 +59,23 @@ namespace VD.Blaze.Lexer
                 case '+': _tokens.Add(new Token(TokenType.PLUS, _line, _context)); break;
                 case '-': _tokens.Add(new Token(TokenType.MINUS, _line, _context)); break;
                 case '*': _tokens.Add(new Token(TokenType.STAR, _line, _context)); break;
-                case '/': _tokens.Add(new Token(TokenType.SLASH, _line, _context)); break;
+                case '/': 
+                    if(Match('/'))
+                    {
+                        while (Available())
+                            if (Match('\n'))
+                            {
+                                _line++;
+                                break;
+                            }
+                            else
+                                _current++;
+                    }
+                    else
+                    {
+                        _tokens.Add(new Token(TokenType.SLASH, _line, _context));
+                    }
+                    break;
 
                 case '(': _tokens.Add(new Token(TokenType.OPEN_PAREN, _line, _context)); break;
                 case ')': _tokens.Add(new Token(TokenType.CLOSE_PAREN, _line, _context)); break;
@@ -136,7 +152,7 @@ namespace VD.Blaze.Lexer
         {
             string str = string.Empty;
 
-            while(Peek() != '"')
+            while(Peek() != '"' && Peek() != '\0')
             {
                 char c = Advance();
 
@@ -162,6 +178,9 @@ namespace VD.Blaze.Lexer
                     str += c;
                 }
             }
+
+            if(Peek() == '\0')
+                throw new LexerException(_context, _line, $"Unclosed string");
 
             // Consume closing double quotes
             _current++;
