@@ -14,7 +14,7 @@ namespace VD.Blaze.Generator
     {
         private Module.Module _module;
         private Dictionary<string, Variable> _variables;
-        private Dictionary<string, Function> _functions;
+        // private Dictionary<string, Function> _functions;
 
         private Stack<Function> _functionStack;
         private Function _function;
@@ -27,7 +27,7 @@ namespace VD.Blaze.Generator
         {
             _functionStack = new Stack<Function>();
             _variables = new Dictionary<string, Variable>();
-            _functions = new Dictionary<string, Function>();
+            // _functions = new Dictionary<string, Function>();
         }
 
         public Module.Module Generate(Statement statement, string source)
@@ -35,7 +35,7 @@ namespace VD.Blaze.Generator
             _module = new Module.Module();
             _functionStack.Clear();
             _variables.Clear();
-            _functions.Clear();
+            // _functions.Clear();
             _function = null;
             _localEnv = null;
             _source = source;
@@ -94,7 +94,7 @@ namespace VD.Blaze.Generator
 
             // Setup function and local env
             _function = _module.CreateFunction(topFuncDef.Name, topFuncDef.Args.Count, visibility);
-            _functions[topFuncDef.Name] = _function;
+            // _functions[topFuncDef.Name] = _function;
             _localEnv = new LocalEnvironment(_localEnv);
             
             // CreateFunction adds a variable binding for the function, it's gonna be the last one in the list after the call
@@ -162,6 +162,33 @@ namespace VD.Blaze.Generator
                     _function.Emit(Opcode.DIV);
                     break;
 
+                case TokenType.DOUBLE_EQUALS:
+                    _function.Emit(Opcode.EQ);
+                    break;
+
+                case TokenType.NOT_EQUALS:
+                    _function.Emit(Opcode.EQ);
+                    _function.Emit(Opcode.NOT);
+                    break;
+
+                case TokenType.LESS:
+                    _function.Emit(Opcode.LT);
+                    break;
+
+                case TokenType.LESS_EQUALS:
+                    _function.Emit(Opcode.LTE);
+                    break;
+
+                case TokenType.GREATER:
+                    _function.Emit(Opcode.LTE);
+                    _function.Emit(Opcode.NOT);
+                    break;
+
+                case TokenType.GREATER_EQUALS:
+                    _function.Emit(Opcode.LT);
+                    _function.Emit(Opcode.NOT);
+                    break;
+
                 default:
                     throw new NotImplementedException();
             }
@@ -169,7 +196,7 @@ namespace VD.Blaze.Generator
 
         public void VisitExprStmt(Statement.ExprStmt exprStmt)
         {
-            Evaluate(exprStmt.Expr);
+            Evaluate(exprStmt.Expr);;
             _function.Emit(Opcode.POP, 1);
         }
 
@@ -241,6 +268,7 @@ namespace VD.Blaze.Generator
         public void VisitAssignVar(Expression.AssignVariable assignVar)
         {
             Evaluate(assignVar.Value);
+            _function.Emit(Opcode.DUP, 1);
 
             (LocalVariable local, int level) = _localEnv.GetLocal(assignVar.Name);
 
@@ -318,6 +346,56 @@ namespace VD.Blaze.Generator
 
             // Modify arg of jmp instruction 
             _function.Instructions[jmpInstIdx] = new Instruction(Opcode.JMP, (byte)(_function.Instructions.Count - jmpInstIdx));
+        }
+
+        public void VisitIf(Statement.IfStatement ifStmt)
+        {
+            Evaluate(ifStmt.Condition);
+
+            int jmpIdx = _function.Instructions.Count;
+            _function.Emit(Opcode.JMPF, 0);
+
+            Evaluate(ifStmt.Body);
+
+            int elseSkipIdx = _function.Instructions.Count;
+            if(ifStmt.Else is not null)
+                _function.Emit(Opcode.JMP, 0);
+
+            _function.Instructions[jmpIdx] = new Instruction(Opcode.JMPF, (byte)(_function.Instructions.Count - jmpIdx));
+
+            if(ifStmt.Else is not null)
+            {
+                Evaluate(ifStmt.Else);
+                _function.Instructions[elseSkipIdx] = new Instruction(Opcode.JMP, (byte)(_function.Instructions.Count - elseSkipIdx));
+            }
+        }
+
+        public void VisitFunctionValue(Expression.FuncValue funcValue)
+        {
+            if (_function is not null)
+                _functionStack.Push(_function);
+
+            // Setup function and local env
+            Function function = _module.CreateAnonymousFunction(funcValue.Args.Count);
+            _function = function;
+            _localEnv = new LocalEnvironment(_localEnv);
+
+            // Setup arg indicies
+            for (int i = 0; i < funcValue.Args.Count; i++)
+            {
+                _localEnv.Args[funcValue.Args[i]] = i;
+            }
+
+            foreach (Statement stmt in funcValue.Body)
+            {
+                Evaluate(stmt);
+            }
+
+            if (_functionStack.Count != 0)
+                _function = _functionStack.Pop();
+
+            _localEnv = _localEnv.Parent;
+            _function.Emit(Opcode.LDFUNC, function);
         }
     }
 

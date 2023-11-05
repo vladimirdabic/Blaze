@@ -22,6 +22,7 @@ namespace VD.Blaze.Parser
             void VisitLocalVarDef(LocalVariableDef localVarDef);
             void VisitBlock(Block block);
             void VisitTryCatch(TryCatch tryCatch);
+            void VisitIf(IfStatement ifStmt);
         }
 
         public abstract void Accept(IVisitor visitor);
@@ -166,6 +167,25 @@ namespace VD.Blaze.Parser
             public override void Accept(IVisitor visitor)
             {
                 visitor.VisitTryCatch(this);
+            }
+        }
+
+        public class IfStatement : Statement
+        {
+            public Expression Condition;
+            public Statement Body;
+            public Statement Else;
+
+            public IfStatement(Expression condition, Statement body, Statement _else)
+            {
+                Condition = condition;
+                Body = body;
+                Else = _else;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.VisitIf(this);
             }
         }
     }

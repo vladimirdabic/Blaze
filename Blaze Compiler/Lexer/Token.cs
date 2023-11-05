@@ -59,7 +59,7 @@ namespace VD.Blaze.Lexer
         IDENTIFIER,
 
         // Reserved words
-        IF, WHILE, BREAK, RETURN,
+        IF, ELSE, WHILE, BREAK, RETURN,
         FUNC, CLASS, VAR, PRIVATE, PUBLIC, EXTERN,
         TRUE, FALSE, NULL,
         TRY, CATCH,

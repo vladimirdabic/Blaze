@@ -19,6 +19,7 @@ namespace VD.Blaze.Parser
             void VisitVariable(Variable variable);
             void VisitCall(Call call);
             void VisitAssignVar(AssignVariable assignVar);
+            void VisitFunctionValue(FuncValue funcValue);
         }
 
         public abstract void Accept(IVisitor visitor);
@@ -146,6 +147,27 @@ namespace VD.Blaze.Parser
             public override void Accept(IVisitor visitor)
             {
                 visitor.VisitAssignVar(this);
+            }
+        }
+
+        public class FuncValue : Expression
+        {
+            public TokenLocation Location;
+            public string Name;
+            public List<string> Args;
+            public List<Statement> Body;
+
+            public FuncValue(TokenLocation location, string name, List<string> args, List<Statement> body)
+            {
+                Name = name;
+                Location = location;
+                Args = args;
+                Body = body;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.VisitFunctionValue(this);
             }
         }
     }

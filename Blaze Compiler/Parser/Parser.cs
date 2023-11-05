@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,22 @@ namespace VD.Blaze.Parser
     {
         private List<Token> _tokens;
         private int _current;
+
+        private static readonly Dictionary<TokenType, PrecedenceInfo> _operatorPrecedence = new Dictionary<TokenType, PrecedenceInfo>()
+        {
+            { TokenType.DOUBLE_EQUALS, new PrecedenceInfo(0, PrecAssoc.LEFT) },
+            { TokenType.NOT_EQUALS, new PrecedenceInfo(0, PrecAssoc.LEFT) },
+
+            { TokenType.GREATER, new PrecedenceInfo(10, PrecAssoc.LEFT) },
+            { TokenType.LESS, new PrecedenceInfo(10, PrecAssoc.LEFT) },
+            { TokenType.GREATER_EQUALS, new PrecedenceInfo(10, PrecAssoc.LEFT) },
+            { TokenType.LESS_EQUALS, new PrecedenceInfo(10, PrecAssoc.LEFT) },
+            
+            { TokenType.PLUS, new PrecedenceInfo(20, PrecAssoc.LEFT) },
+            { TokenType.MINUS, new PrecedenceInfo(20, PrecAssoc.LEFT) },
+            { TokenType.STAR, new PrecedenceInfo(30, PrecAssoc.LEFT) },
+            { TokenType.SLASH, new PrecedenceInfo(30, PrecAssoc.LEFT) },
+        };
 
         /// <summary>
         /// Generates an abstract syntax tree from a list of tokens
@@ -134,6 +151,18 @@ namespace VD.Blaze.Parser
                 return new Statement.TryCatch(tryStmt, catchStmt, name);
             }
 
+            if(Match(TokenType.IF))
+            {
+                Consume(TokenType.OPEN_PAREN, "Expected '(' after if");
+                Expression condition = ParseExpression();
+                Consume(TokenType.CLOSE_PAREN, "Expected ')' after if condition");
+
+                Statement body = ParseStatement();
+                Statement elseBody = Match(TokenType.ELSE) ? ParseStatement() : null;
+
+                return new Statement.IfStatement(condition, body, elseBody);
+            }
+
             Expression expr = ParseExpression();
 
             // Only allow Assignments and Function Calls
@@ -151,7 +180,7 @@ namespace VD.Blaze.Parser
 
         private Expression ParseAssign()
         {
-            Expression left = ParseAdd();
+            Expression left = ParseBinaryOperation(0);
 
             while(Match(TokenType.EQUALS))
             {
@@ -166,27 +195,30 @@ namespace VD.Blaze.Parser
             return left;
         }
 
-        private Expression ParseAdd()
-        {
-            Expression left = ParseMultiply();
-
-            while(Match(TokenType.PLUS, TokenType.MINUS))
-            {
-                TokenType op = Prev().Type;
-                left = new Expression.BinaryOperation(left, ParseMultiply(), op);
-            }
-
-            return left;
-        }
-
-        private Expression ParseMultiply()
+        private Expression ParseBinaryOperation(int precedence)
         {
             Expression left = ParseCall();
 
-            while (Match(TokenType.STAR, TokenType.SLASH))
+            while(true)
             {
-                TokenType op = Prev().Type;
-                left = new Expression.BinaryOperation(left, ParseCall(), op);
+                if (!Available()) break;
+                Token op = Peek();
+                if (!_operatorPrecedence.ContainsKey(op.Type)) break; // Is not an operator so break
+
+                var precData = _operatorPrecedence[op.Type];
+                if (precData.Level < precedence) break;  // Break if level is smaller than current level
+
+                Advance(); // Consume the operator token finally
+
+                // If the associativity is left, increase by 1
+                // Example: Parsing addition, this means parse the right value with higher precedence (multiplication, division, etc...)
+                // 1 + 2 * 20 + 3 = (1 + (2 * 20)) + 3
+                // If the associativity is right then the left value will have higher precedence (exponents)
+                // 1^2 + 3^2^3 = (1^2) + ((3^2)^3) 
+                int next_prec = precData.Assoc == PrecAssoc.LEFT ? precedence + 1 : precedence;
+
+                Expression right = ParseBinaryOperation(next_prec);
+                left = new Expression.BinaryOperation(left, right, op.Type);
             }
 
             return left;
@@ -251,6 +283,38 @@ namespace VD.Blaze.Parser
                 Expression expr = ParseExpression();
                 Consume(TokenType.CLOSE_PAREN, "Expected ')'");
                 return expr;
+            }
+
+            if (Match(TokenType.FUNC))
+            {
+                Token keyword = Prev();
+                string name = Check(TokenType.IDENTIFIER) ? (string)Advance().Value : null;
+                Consume(TokenType.OPEN_PAREN, "Expected function arguments after func");
+
+                var args = new List<string>();
+
+                if (!Check(TokenType.CLOSE_PAREN))
+                {
+                    do
+                    {
+                        Token arg = Consume(TokenType.IDENTIFIER, "Expected func argument name");
+                        args.Add((string)arg.Value);
+                    } while (Match(TokenType.COMMA));
+                }
+
+                Consume(TokenType.CLOSE_PAREN, "Expected ')' after func arguments");
+                Consume(TokenType.OPEN_BRACE, "Expected func body");
+
+                var body = new List<Statement>();
+
+                while (Available() && !Check(TokenType.CLOSE_BRACE))
+                {
+                    body.Add(ParseStatement());
+                }
+
+                Consume(TokenType.CLOSE_BRACE, "Expected '}' to close func body");
+
+                return new Expression.FuncValue(keyword.Location, name, args, body);
             }
 
             throw new ParserException(Peek().Location.Source, Peek().Location.Line, "Expected an expression");
@@ -319,4 +383,12 @@ namespace VD.Blaze.Parser
             Line = line;
         }
     }
+
+    // Precedence Associativity
+    public enum PrecAssoc
+    {
+        LEFT, RIGHT
+    }
+
+    public record struct PrecedenceInfo(int Level, PrecAssoc Assoc);
 }

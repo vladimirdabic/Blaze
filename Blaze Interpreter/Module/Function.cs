@@ -142,7 +142,9 @@ namespace VD.Blaze.Module
 
         THROW, CATCH, TRY_END,
 
-        EQ, LT, LTE, NOT, JMP, JMPA, JMPT, JMPF
+        EQ, LT, LTE, NOT, JMP, JMPA, JMPT, JMPF,
+
+        DUP, VARARGS,
     }
 
     public class LocalVariable

@@ -16,6 +16,7 @@ namespace VD.Blaze.Lexer
         private static readonly Dictionary<string, TokenType> s_reservedWords = new Dictionary<string, TokenType>()
         {
             { "if", TokenType.IF },
+            { "else", TokenType.ELSE },
             { "while", TokenType.WHILE },
             { "break", TokenType.BREAK },
             { "return", TokenType.RETURN },

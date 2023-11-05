@@ -73,12 +73,22 @@ namespace VD.Blaze.Interpreter
                 Variables[name] = new ModuleVariable(variable.Type, null);
             }
 
-            foreach(Function function in Module.Functions)
+            /*foreach(Function function in Module.Functions)
             {
                 Functions.Add(new FunctionValue(function, null));
-            }
+            }*/
         }
+        
 
+        /// <summary>
+        /// Creates a new instance of a FunctionValue from a Module Function
+        /// </summary>
+        /// <param name="index">Index of the function in the module function list</param>
+        /// <returns></returns>
+        public FunctionValue GetFunction(int index)
+        {
+            return new FunctionValue(Module.Functions[index], null);
+        }
 
         /// <summary>
         /// Gets a variable from this module (returns public and private variables)
@@ -170,9 +180,10 @@ namespace VD.Blaze.Interpreter
         /// <param name="name">Name of the function</param>
         public FunctionValue GetFunction(string name)
         {
-            foreach(var func  in Functions)
+            foreach(var func in Module.Functions)
             {
-                if(func.Name == name) return func;
+                if (func.Name is not null && ((StringValue)Constants[func.Name.Index]).Value == name)
+                    return new FunctionValue(func, null);
             }
 
             return null;

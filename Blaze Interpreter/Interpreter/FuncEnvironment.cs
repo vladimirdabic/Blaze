@@ -67,7 +67,7 @@ namespace VD.Blaze.Interpreter
                     case Opcode.POP:
                         {
                             for (int i = 0; i < oparg; ++i)
-                                _interpreter._stack.Pop();
+                                _stack.Pop();
                         }
                         break;
 
@@ -119,7 +119,12 @@ namespace VD.Blaze.Interpreter
                         break;
 
                     case Opcode.LDFUNC:
-                        _stack.Push(_moduleEnv.Functions[oparg]);
+                        {
+                            // This must be done so each function can have its own closure, otherwise they all share the same closure
+                            var func = _moduleEnv.GetFunction(oparg);
+                            func.Closure = this;
+                            _stack.Push(func);
+                        } 
                         break;
 
                     case Opcode.LDCLASS:
@@ -355,6 +360,14 @@ namespace VD.Blaze.Interpreter
                             else
                                 _stack.Push(((IValueBinOp)left).LessThanEquals(right));
                         }
+                        break;
+
+                    case Opcode.DUP:
+                        _stack.Push(_stack.Peek());
+                        break;
+
+                    case Opcode.VARARGS:
+                        // TODO
                         break;
 
                     default:

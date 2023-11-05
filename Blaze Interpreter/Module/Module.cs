@@ -191,7 +191,7 @@ namespace VD.Blaze.Module
             {
                 string name = func.Name is null ? "<anonymous>" : ((Constant.String)func.Name).Value;
 
-                Console.WriteLine($"{name} (# args: {func.NumOfArgs}, # locals: {func.NumOfLocals}, Varargs: {func.Varargs})");
+                Console.WriteLine($"{name} (# args: {func.NumOfArgs}, # locals: {func.NumOfLocals}, Varargs: {func.Varargs}, # instructions: {func.Instructions.Count})");
                 foreach (var inst in func.Instructions)
                 {
                     Console.WriteLine($"    {inst.Id} {inst.Argument}");

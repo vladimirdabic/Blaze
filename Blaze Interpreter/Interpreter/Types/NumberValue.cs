@@ -85,7 +85,7 @@ namespace VD.Blaze.Interpreter.Types
 
         public bool AsBoolean()
         {
-            return Value == 1;
+            return Value != 0;
         }
     }
 }
