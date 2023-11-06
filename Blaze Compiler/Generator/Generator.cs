@@ -110,6 +110,9 @@ namespace VD.Blaze.Generator
             foreach (Statement stmt in topFuncDef.Body)
             {
                 Evaluate(stmt);
+
+                // No need to generate more instructions after this return
+                if (stmt is Statement.Return) break;
             }
 
             if(_functionStack.Count != 0)
@@ -131,6 +134,11 @@ namespace VD.Blaze.Generator
 
             Variable variable = _module.DefineVariable(topVarDef.Name, visibility);
             _variables[topVarDef.Name] = variable;
+
+            // In the future, if there's a value specified, generate that instead of null
+            var staticFunc = _module.GetStaticFunction();
+            staticFunc.Emit(Opcode.LDNULL);
+            staticFunc.Emit(Opcode.STVAR, variable);
         }
 
         public void VisitString(Expression.String str)
@@ -196,7 +204,7 @@ namespace VD.Blaze.Generator
 
         public void VisitExprStmt(Statement.ExprStmt exprStmt)
         {
-            Evaluate(exprStmt.Expr);;
+            Evaluate(exprStmt.Expr);
             _function.Emit(Opcode.POP, 1);
         }
 
@@ -314,6 +322,9 @@ namespace VD.Blaze.Generator
             foreach(var stmt in block.Statements)
             {
                 Evaluate(stmt);
+
+                // No need to generate more instructions after this return
+                if (stmt is Statement.Return) break;
             }
 
             _localEnv.PopFrame();
@@ -334,13 +345,18 @@ namespace VD.Blaze.Generator
             _function.Instructions[catchInstIdx] = new Instruction(Opcode.CATCH, (byte)(_function.Instructions.Count - catchInstIdx));
 
             _localEnv.PushFrame();
+
             if(tryCatch.CatchName is not null)
             {
                 LocalVariable catchVar = _function.DeclareLocal();
                 _localEnv.DefineLocal(tryCatch.CatchName, catchVar);
                 _function.Emit(Opcode.STLOCAL, catchVar);
             }
-            
+            else
+            {
+                _function.Emit(Opcode.POP, 1);
+            }
+
             Evaluate(tryCatch.CatchStmt);
             _localEnv.PopFrame();
 
@@ -389,6 +405,9 @@ namespace VD.Blaze.Generator
             foreach (Statement stmt in funcValue.Body)
             {
                 Evaluate(stmt);
+
+                // No need to generate more instructions after this return
+                if (stmt is Statement.Return) break;
             }
 
             if (_functionStack.Count != 0)
@@ -396,6 +415,33 @@ namespace VD.Blaze.Generator
 
             _localEnv = _localEnv.Parent;
             _function.Emit(Opcode.LDFUNC, function);
+        }
+
+        public void VisitThrow(Statement.Throw throwStmt)
+        {
+            if (throwStmt.Value is null)
+                _function.Emit(Opcode.LDNULL);
+            else
+                Evaluate(throwStmt.Value);
+
+            _function.Emit(Opcode.THROW);
+        }
+
+        public void VisitStaticStmt(Statement.StaticStmt staticStmt)
+        {
+            if (_function is not null)
+                _functionStack.Push(_function);
+
+            // Static function
+            _function = _module.Functions[0];
+            _localEnv = new LocalEnvironment(_localEnv);
+
+            Evaluate(staticStmt.Stmt);
+
+            if (_functionStack.Count != 0)
+                _function = _functionStack.Pop();
+
+            _localEnv = _localEnv.Parent;
         }
     }
 

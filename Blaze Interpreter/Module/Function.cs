@@ -145,6 +145,8 @@ namespace VD.Blaze.Module
         EQ, LT, LTE, NOT, JMP, JMPA, JMPT, JMPF,
 
         DUP, VARARGS,
+
+        LDARR, LDOBJ, LDINDEX, STINDEX,
     }
 
     public class LocalVariable

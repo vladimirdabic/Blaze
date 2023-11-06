@@ -31,6 +31,8 @@ namespace VD.Blaze.Lexer
             { "null", TokenType.NULL },
             { "try", TokenType.TRY },
             { "catch", TokenType.CATCH },
+            { "throw", TokenType.THROW },
+            { "static", TokenType.STATIC },
         };
 
 

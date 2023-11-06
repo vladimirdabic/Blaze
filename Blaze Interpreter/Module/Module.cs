@@ -16,6 +16,7 @@ namespace VD.Blaze.Module
 
         private Function _staticFunction;
         private readonly Dictionary<string, Constant> _stringConstantMap;
+        private readonly Dictionary<double, Constant> _numberConstantMap;
 
         public Module()
         {
@@ -24,6 +25,7 @@ namespace VD.Blaze.Module
             Functions = new List<Function>();
 
             _stringConstantMap = new Dictionary<string, Constant>();
+            _numberConstantMap = new Dictionary<double, Constant>();
             _staticFunction = CreateAnonymousFunction(0);
         }
 
@@ -71,11 +73,23 @@ namespace VD.Blaze.Module
                 _stringConstantMap[str_const.Value] = constant;
             }
 
+            if (constant is Constant.Number num_const)
+            {
+                if (_numberConstantMap.ContainsKey(num_const.Value))
+                    return _numberConstantMap[num_const.Value];
+
+                _numberConstantMap[num_const.Value] = constant;
+            }
+
             constant.Index = Constants.Count;
             Constants.Add(constant);
             return constant;
         }
 
+        public Function GetStaticFunction()
+        {
+            return _staticFunction;
+        }
 
         public void FromBinary(BinaryReader br)
         {
@@ -130,8 +144,6 @@ namespace VD.Blaze.Module
             }
 
             _staticFunction = Functions[0];
-
-            ushort class_count = br.ReadUInt16();
         }
 
         public void ToBinary(BinaryWriter bw)
@@ -157,9 +169,6 @@ namespace VD.Blaze.Module
             bw.Write((ushort)Functions.Count);
             foreach(Function function in Functions)
                 function.ToBinary(bw);
-            
-            // Classes
-            bw.Write((ushort)0);
         }
 
         public void PrintToConsole()

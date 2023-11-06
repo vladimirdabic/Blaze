@@ -99,6 +99,12 @@ namespace VD.Blaze.Parser
                 return new Statement.TopFuncDef(visibility, name.Location, (string)name.Value, args, body);
             }
 
+            if(Match(TokenType.STATIC))
+            {
+                Statement stmt = ParseStatement();
+                return new Statement.StaticStmt(stmt);
+            }
+
             throw new ParserException(Peek().Location.Source, Peek().Location.Line, "Expected a declaration");
         }
 
@@ -163,6 +169,14 @@ namespace VD.Blaze.Parser
                 return new Statement.IfStatement(condition, body, elseBody);
             }
 
+            if (Match(TokenType.THROW))
+            {
+                Expression value = Check(TokenType.SEMICOLON) ? null : ParseExpression();
+                Consume(TokenType.SEMICOLON, "Expected ';' after throw statement");
+
+                return new Statement.Throw(value);
+            }
+
             Expression expr = ParseExpression();
 
             // Only allow Assignments and Function Calls
@@ -213,8 +227,8 @@ namespace VD.Blaze.Parser
                 // If the associativity is left, increase by 1
                 // Example: Parsing addition, this means parse the right value with higher precedence (multiplication, division, etc...)
                 // 1 + 2 * 20 + 3 = (1 + (2 * 20)) + 3
-                // If the associativity is right then the left value will have higher precedence (exponents)
-                // 1^2 + 3^2^3 = (1^2) + ((3^2)^3) 
+                // If the associativity is right then the left value will have the same precedence (exponents)
+                // 1^2 + 3^2^3 = (1^2) + (3^(2^3)) 
                 int next_prec = precData.Assoc == PrecAssoc.LEFT ? precedence + 1 : precedence;
 
                 Expression right = ParseBinaryOperation(next_prec);

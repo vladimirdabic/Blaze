@@ -33,7 +33,7 @@ namespace VD.Blaze.Interpreter
             ExceptionStack = new Stack<int>();
             _instructions = null;
             _interpreter = interpreter;
-            _stack = interpreter._stack;
+            _stack = interpreter.Stack;
             _moduleEnv = interpreter._moduleEnv;
         }
 
@@ -192,7 +192,7 @@ namespace VD.Blaze.Interpreter
                             {
                                 _stack.Push(((IValueCallable)value).Call(_interpreter, args));
                             }
-                            catch(InterpreterInternalException e)
+                            catch(InterpreterInternalException)
                             {
                                 Throw();
                             }
