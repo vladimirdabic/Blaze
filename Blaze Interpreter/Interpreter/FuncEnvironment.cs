@@ -334,6 +334,24 @@ namespace VD.Blaze.Interpreter
                         } 
                         break;
 
+                    case Opcode.AND:
+                        {
+                            bool right =  _stack.Pop().AsBoolean();
+                            bool left = _stack.Pop().AsBoolean();
+
+                            _stack.Push(new BooleanValue(left && right));
+                        }
+                        break;
+
+                    case Opcode.OR:
+                        {
+                            bool right = _stack.Pop().AsBoolean();
+                            bool left = _stack.Pop().AsBoolean();
+
+                            _stack.Push(new BooleanValue(left || right));
+                        }
+                        break;
+
                     case Opcode.NOT:
                         _stack.Push(new BooleanValue(!_stack.Pop().AsBoolean()));
                         break;
@@ -368,6 +386,18 @@ namespace VD.Blaze.Interpreter
 
                     case Opcode.VARARGS:
                         // TODO
+                        break;
+
+                    case Opcode.LDARR:
+                        break;
+
+                    case Opcode.LDOBJ:
+                        break;
+
+                    case Opcode.LDINDEX:
+                        break;
+
+                    case Opcode.STINDEX:
                         break;
 
                     default:

@@ -70,7 +70,7 @@ namespace VD.Blaze.Interpreter
             {
                 // TODO: Error checking
                 string name = ((Constant.String)variable.Name).Value;
-                Variables[name] = new ModuleVariable(variable.Type, null);
+                Variables[name] = new ModuleVariable(variable.Type, Interpreter.NullInstance, this);
             }
 
             /*foreach(Function function in Module.Functions)
@@ -188,17 +188,33 @@ namespace VD.Blaze.Interpreter
 
             return null;
         }
+
+        /// <summary>
+        /// Defines a variable in this environment
+        /// </summary>
+        /// <param name="name">Variable name</param>
+        /// <param name="visibility">Variable visibility</param>
+        /// <param name="value">Value (Optional)</param>
+        /// <returns>The variable</returns>
+        public ModuleVariable DefineVariable(string name, VariableType visibility, IValue value = null)
+        {
+            ModuleVariable variable = new ModuleVariable(visibility, value ?? Interpreter.NullInstance, this);
+            Variables[name] = variable;
+            return variable;
+        }
     }
 
     public class ModuleVariable
     {
         public VariableType Visibility;
         public IValue Value;
+        public ModuleEnvironment Owner;
 
-        public ModuleVariable(VariableType visibility, IValue value)
+        public ModuleVariable(VariableType visibility, IValue value, ModuleEnvironment owner)
         {
             Visibility = visibility;
             Value = value;
+            Owner = owner;
         }
     }
 }

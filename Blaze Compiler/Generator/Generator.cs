@@ -137,8 +137,12 @@ namespace VD.Blaze.Generator
 
             // In the future, if there's a value specified, generate that instead of null
             var staticFunc = _module.GetStaticFunction();
-            staticFunc.Emit(Opcode.LDNULL);
-            staticFunc.Emit(Opcode.STVAR, variable);
+
+            if (visibility != VariableType.EXTERNAL)
+            {
+                staticFunc.Emit(Opcode.LDNULL);
+                staticFunc.Emit(Opcode.STVAR, variable);
+            }
         }
 
         public void VisitString(Expression.String str)
@@ -195,6 +199,14 @@ namespace VD.Blaze.Generator
                 case TokenType.GREATER_EQUALS:
                     _function.Emit(Opcode.LT);
                     _function.Emit(Opcode.NOT);
+                    break;
+
+                case TokenType.AND:
+                    _function.Emit(Opcode.AND);
+                    break;
+
+                case TokenType.OR:
+                    _function.Emit(Opcode.OR);
                     break;
 
                 default:

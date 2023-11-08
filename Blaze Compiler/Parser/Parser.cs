@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using VD.Blaze.Lexer;
 
 namespace VD.Blaze.Parser
@@ -15,18 +16,21 @@ namespace VD.Blaze.Parser
 
         private static readonly Dictionary<TokenType, PrecedenceInfo> _operatorPrecedence = new Dictionary<TokenType, PrecedenceInfo>()
         {
-            { TokenType.DOUBLE_EQUALS, new PrecedenceInfo(0, PrecAssoc.LEFT) },
-            { TokenType.NOT_EQUALS, new PrecedenceInfo(0, PrecAssoc.LEFT) },
+            { TokenType.OR, new PrecedenceInfo(0, PrecAssoc.LEFT) },
+            { TokenType.AND, new PrecedenceInfo(5, PrecAssoc.LEFT) },
 
-            { TokenType.GREATER, new PrecedenceInfo(10, PrecAssoc.LEFT) },
-            { TokenType.LESS, new PrecedenceInfo(10, PrecAssoc.LEFT) },
-            { TokenType.GREATER_EQUALS, new PrecedenceInfo(10, PrecAssoc.LEFT) },
-            { TokenType.LESS_EQUALS, new PrecedenceInfo(10, PrecAssoc.LEFT) },
+            { TokenType.DOUBLE_EQUALS, new PrecedenceInfo(10, PrecAssoc.LEFT) },
+            { TokenType.NOT_EQUALS, new PrecedenceInfo(10, PrecAssoc.LEFT) },
+
+            { TokenType.GREATER, new PrecedenceInfo(20, PrecAssoc.LEFT) },
+            { TokenType.LESS, new PrecedenceInfo(20, PrecAssoc.LEFT) },
+            { TokenType.GREATER_EQUALS, new PrecedenceInfo(20, PrecAssoc.LEFT) },
+            { TokenType.LESS_EQUALS, new PrecedenceInfo(20, PrecAssoc.LEFT) },
             
-            { TokenType.PLUS, new PrecedenceInfo(20, PrecAssoc.LEFT) },
-            { TokenType.MINUS, new PrecedenceInfo(20, PrecAssoc.LEFT) },
-            { TokenType.STAR, new PrecedenceInfo(30, PrecAssoc.LEFT) },
-            { TokenType.SLASH, new PrecedenceInfo(30, PrecAssoc.LEFT) },
+            { TokenType.PLUS, new PrecedenceInfo(30, PrecAssoc.LEFT) },
+            { TokenType.MINUS, new PrecedenceInfo(30, PrecAssoc.LEFT) },
+            { TokenType.STAR, new PrecedenceInfo(40, PrecAssoc.LEFT) },
+            { TokenType.SLASH, new PrecedenceInfo(40, PrecAssoc.LEFT) },
         };
 
         /// <summary>
@@ -229,7 +233,7 @@ namespace VD.Blaze.Parser
                 // 1 + 2 * 20 + 3 = (1 + (2 * 20)) + 3
                 // If the associativity is right then the left value will have the same precedence (exponents)
                 // 1^2 + 3^2^3 = (1^2) + (3^(2^3)) 
-                int next_prec = precData.Assoc == PrecAssoc.LEFT ? precedence + 1 : precedence;
+                int next_prec = precData.Assoc == PrecAssoc.LEFT ? precData.Level + 1 : precData.Level;
 
                 Expression right = ParseBinaryOperation(next_prec);
                 left = new Expression.BinaryOperation(left, right, op.Type);

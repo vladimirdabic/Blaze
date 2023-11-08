@@ -143,6 +143,7 @@ namespace VD.Blaze.Module
         THROW, CATCH, TRY_END,
 
         EQ, LT, LTE, NOT, JMP, JMPA, JMPT, JMPF,
+        OR, AND,
 
         DUP, VARARGS,
 

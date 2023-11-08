@@ -25,7 +25,7 @@ namespace VD.Blaze.Interpreter.Types
 
         public string AsString()
         {
-            return $"null";
+            return "null";
         }
 
         public bool AsBoolean()

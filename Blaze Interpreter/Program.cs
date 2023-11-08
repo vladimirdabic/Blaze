@@ -67,7 +67,7 @@ namespace Blaze_Interpreter
                 return null;
             });
 
-            env.Variables["print"] = new ModuleVariable(VariableType.PUBLIC, print_func);
+            env.DefineVariable("print", VariableType.PUBLIC, print_func);
         }
     }
 }

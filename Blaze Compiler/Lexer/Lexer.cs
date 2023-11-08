@@ -101,6 +101,9 @@ namespace VD.Blaze.Lexer
                 case '!': _tokens.Add(new Token(Match('=') ? TokenType.NOT_EQUALS : TokenType.BANG, _line, _context)); break;
                 case '<': _tokens.Add(new Token(Match('=') ? TokenType.LESS_EQUALS: TokenType.LESS, _line, _context)); break;
                 case '>': _tokens.Add(new Token(Match('=') ? TokenType.GREATER_EQUALS : TokenType.GREATER, _line, _context)); break;
+                
+                case '&': _tokens.Add(new Token(Match('&') ? TokenType.AND : TokenType.AMPERSAND, _line, _context)); break;
+                case '|': _tokens.Add(new Token(Match('|') ? TokenType.OR : TokenType.PIPE, _line, _context)); break;
 
                 case '\n':
                     _line++;

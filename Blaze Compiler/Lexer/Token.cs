@@ -51,6 +51,7 @@ namespace VD.Blaze.Lexer
 
         // = ! < > == != <= >=
         EQUALS, BANG, LESS, GREATER, DOUBLE_EQUALS, NOT_EQUALS, LESS_EQUALS, GREATER_EQUALS,
+        AMPERSAND, PIPE, AND, OR,
 
         // 23.2, "test"
         NUMBER, STRING,
