@@ -135,12 +135,16 @@ namespace VD.Blaze.Generator
             Variable variable = _module.DefineVariable(topVarDef.Name, visibility);
             _variables[topVarDef.Name] = variable;
 
-            // In the future, if there's a value specified, generate that instead of null
+            // Generate value
             var staticFunc = _module.GetStaticFunction();
 
             if (visibility != VariableType.EXTERNAL)
             {
-                staticFunc.Emit(Opcode.LDNULL);
+                if (topVarDef.Value is not null)
+                    Evaluate(topVarDef.Value);
+                else
+                    staticFunc.Emit(Opcode.LDNULL);
+                
                 staticFunc.Emit(Opcode.STVAR, variable);
             }
         }
@@ -454,6 +458,45 @@ namespace VD.Blaze.Generator
                 _function = _functionStack.Pop();
 
             _localEnv = _localEnv.Parent;
+        }
+
+        public void VisitEventValue(Expression.EventValue eventValue)
+        {
+            _function.Emit(Opcode.LDEVENT);
+        }
+
+        public void VisitListValue(Expression.ListValue listValue)
+        {
+            // Push values backwards
+            for(int i = listValue.Values.Count - 1;  i >= 0; i--)
+            {
+                Evaluate(listValue.Values[i]);
+            }
+
+            _function.Emit(Opcode.LDLIST, (byte)listValue.Values.Count);
+        }
+
+        public void VisitTopEventDef(Statement.TopEventDef topEventDef)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VisitGetIndex(Expression.GetIndex getIndex)
+        {
+            Evaluate(getIndex.Index);
+            Evaluate(getIndex.Left);
+
+            _function.Emit(Opcode.LDINDEX);
+        }
+
+        public void VisitSetIndex(Expression.SetIndex setIndex)
+        {
+            Evaluate(setIndex.Value);
+            _function.Emit(Opcode.DUP);
+            Evaluate(setIndex.Index);
+            Evaluate(setIndex.Left);
+
+            _function.Emit(Opcode.STINDEX);
         }
     }
 

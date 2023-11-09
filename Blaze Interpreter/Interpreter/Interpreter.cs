@@ -57,7 +57,7 @@ namespace VD.Blaze.Interpreter
                 return function.Call(this, args);
             } catch (InterpreterInternalException)
             {
-                throw new InterpreterException(Stack.Pop());
+                throw new InterpreterException(Stack.Pop(), this);
             }
         }
     }
@@ -71,10 +71,12 @@ namespace VD.Blaze.Interpreter
     public class InterpreterException : Exception
     {
         public IValue Value;
+        public Interpreter Interpreter;
 
-        public InterpreterException(IValue value)
+        public InterpreterException(IValue value, Interpreter interpreter)
         {
             Value = value;
+            Interpreter = interpreter;
         }
     }
 }

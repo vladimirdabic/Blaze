@@ -109,6 +109,7 @@ namespace VD.Blaze.Interpreter
                             {
                                 // ERROR, Should throw up the exception stack
                                 Throw($"Referencing an undefined variable '{name}'");
+                                break;
                             }
                             else
                             {
@@ -160,6 +161,7 @@ namespace VD.Blaze.Interpreter
                             if (variable is null)
                             {
                                 Throw($"Assignment to an undefined variable '{name}'");
+                                break;
                             }
                             else
                             {
@@ -179,6 +181,7 @@ namespace VD.Blaze.Interpreter
                             if (value is not IValueCallable)
                             {
                                 Throw($"Tried calling a non callable value of type '{value.GetName()}'");
+                                break;
                             }
 
                             List<IValue> args = new List<IValue>();
@@ -213,6 +216,7 @@ namespace VD.Blaze.Interpreter
                             if (left is not IValueBinOp)
                             {
                                 Throw($"Unsupported operation '+' on types '{left.GetName()}' and '{right.GetName()}'");
+                                break;
                             }
 
                             IValue res = ((IValueBinOp)left).Add(right);
@@ -220,6 +224,7 @@ namespace VD.Blaze.Interpreter
                             if (res is null)
                             {
                                 Throw($"Unsupported operation '+' on types '{left.GetName()}' and '{right.GetName()}'");
+                                break;
                             }
 
                             _stack.Push(res);
@@ -234,6 +239,7 @@ namespace VD.Blaze.Interpreter
                             if (left is not IValueBinOp)
                             {
                                 Throw($"Unsupported operation '-' on types '{left.GetName()}' and '{right.GetName()}'");
+                                break;
                             }
 
                             IValue res = ((IValueBinOp)left).Subtract(right);
@@ -241,6 +247,7 @@ namespace VD.Blaze.Interpreter
                             if (res is null)
                             {
                                 Throw($"Unsupported operation '-' on types '{left.GetName()}' and '{right.GetName()}'");
+                                break;
                             }
 
                             _stack.Push(res);
@@ -255,6 +262,7 @@ namespace VD.Blaze.Interpreter
                             if (left is not IValueBinOp)
                             {
                                 Throw($"Unsupported operation '*' on types '{left.GetName()}' and '{right.GetName()}'");
+                                break;
                             }
 
                             IValue res = ((IValueBinOp)left).Multiply(right);
@@ -262,6 +270,7 @@ namespace VD.Blaze.Interpreter
                             if (res is null)
                             {
                                 Throw($"Unsupported operation '*' on types '{left.GetName()}' and '{right.GetName()}'");
+                                break;
                             }
 
                             _stack.Push(res);
@@ -276,6 +285,7 @@ namespace VD.Blaze.Interpreter
                             if (left is not IValueBinOp)
                             {
                                 Throw($"Unsupported operation '/' on types '{left.GetName()}' and '{right.GetName()}'");
+                                break;
                             }
 
                             IValue res = ((IValueBinOp)left).Divide(right);
@@ -283,6 +293,7 @@ namespace VD.Blaze.Interpreter
                             if (res is null)
                             {
                                 Throw($"Unsupported operation '/' on types '{left.GetName()}' and '{right.GetName()}'");
+                                break;
                             }
 
                             _stack.Push(res);
@@ -388,16 +399,82 @@ namespace VD.Blaze.Interpreter
                         // TODO
                         break;
 
-                    case Opcode.LDARR:
+                    case Opcode.LDLIST:
+                        {
+                            ListValue listValue = new ListValue();
+
+                            for(int i = 0; i < oparg; ++i)
+                                listValue.Values.Add(_stack.Pop());
+
+                            _stack.Push(listValue);
+                        }
                         break;
 
                     case Opcode.LDOBJ:
                         break;
 
                     case Opcode.LDINDEX:
+                        {
+                            IValue obj = _stack.Pop();
+                            IValue idx = _stack.Pop();
+
+                            if (obj is not IValueIndexable)
+                            {
+                                Throw($"Tried indexing a non indexable type '{obj.GetName()}'");
+                                break;
+                            }
+
+                            IValueIndexable indexable = (IValueIndexable)obj;
+                            
+                            try
+                            {
+                                _stack.Push(indexable.GetAtIndex(idx));
+                            } 
+                            catch(IndexOutOfBounds)
+                            {
+                                Throw($"Tried indexing out of bounds");
+                                break;
+                            }
+                            catch(IndexNotFound)
+                            {
+                                Throw($"Invalid index '{idx.AsString()}'");
+                                break;
+                            }
+                        }
                         break;
 
                     case Opcode.STINDEX:
+                        {
+                            IValue obj = _stack.Pop();
+                            IValue idx = _stack.Pop();
+                            IValue new_value = _stack.Pop();
+
+                            if (obj is not IValueIndexable)
+                            {
+                                Throw($"Tried indexing a non indexable type '{obj.GetName()}'");
+                                break;
+                            }
+
+                            IValueIndexable indexable = (IValueIndexable)obj;
+
+                            try
+                            {
+                                indexable.SetAtIndex(idx, new_value);
+                            }
+                            catch (IndexOutOfBounds)
+                            {
+                                Throw($"Tried indexing out of bounds");
+                                break;
+                            }
+                            catch (IndexNotFound)
+                            {
+                                Throw($"Invalid index '{idx.AsString()}'");
+                                break;
+                            }
+                        }
+                        break;
+
+                    case Opcode.LDEVENT:
                         break;
 
                     default:

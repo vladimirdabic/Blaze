@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace VD.Blaze.Interpreter.Types
 {
+
     public class BuiltinFunctionValue : IValue, IValueCallable
     {
         public string Name;

@@ -147,7 +147,8 @@ namespace VD.Blaze.Module
 
         DUP, VARARGS,
 
-        LDARR, LDOBJ, LDINDEX, STINDEX,
+        LDLIST, LDOBJ, LDINDEX, STINDEX,
+        LDEVENT,
     }
 
     public class LocalVariable

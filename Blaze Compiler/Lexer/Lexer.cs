@@ -33,6 +33,7 @@ namespace VD.Blaze.Lexer
             { "catch", TokenType.CATCH },
             { "throw", TokenType.THROW },
             { "static", TokenType.STATIC },
+            { "event", TokenType.EVENT },
         };
 
 

@@ -25,6 +25,7 @@ namespace VD.Blaze.Parser
             void VisitThrow(Throw throwStmt);
             void VisitIf(IfStatement ifStmt);
             void VisitStaticStmt(StaticStmt staticStmt);
+            void VisitTopEventDef(TopEventDef topEventDef);
         }
 
         public abstract void Accept(IVisitor visitor);
@@ -66,12 +67,14 @@ namespace VD.Blaze.Parser
             public TokenType Visibility;
             public TokenLocation Location;
             public string Name;
+            public Expression Value;
 
-            public TopVariableDef(TokenType visibility, TokenLocation location, string name)
+            public TopVariableDef(TokenType visibility, TokenLocation location, string name, Expression value)
             {
                 Visibility = visibility;
                 Name = name;
                 Location = location;
+                Value = value;
             }
 
             public override void Accept(IVisitor visitor)
@@ -101,6 +104,27 @@ namespace VD.Blaze.Parser
             public override void Accept(IVisitor visitor)
             {
                 visitor.VisitTopFuncDef(this);
+            }
+        }
+
+        public class TopEventDef : Statement
+        {
+            public TokenLocation Location;
+            public Expression Event;
+            public List<(string name, Expression value)> Args;
+            public List<Statement> Body;
+
+            public TopEventDef(TokenLocation location, Expression _event, List<(string name, Expression value)> args, List<Statement> body)
+            {
+                Event = _event;
+                Location = location;
+                Args = args;
+                Body = body;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.VisitTopEventDef(this);
             }
         }
 

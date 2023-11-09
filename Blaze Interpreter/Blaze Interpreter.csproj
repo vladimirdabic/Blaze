@@ -54,6 +54,7 @@
     <Compile Include="Interpreter\Types\IValueBinOp.cs" />
     <Compile Include="Interpreter\Types\IValueCallable.cs" />
     <Compile Include="Interpreter\Types\IValueIndexable.cs" />
+    <Compile Include="Interpreter\Types\ListValue.cs" />
     <Compile Include="Interpreter\Types\NullValue.cs" />
     <Compile Include="Interpreter\Types\NumberValue.cs" />
     <Compile Include="Interpreter\Types\StringValue.cs" />

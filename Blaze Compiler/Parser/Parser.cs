@@ -67,9 +67,10 @@ namespace VD.Blaze.Parser
             if(Match(TokenType.VAR))
             {
                 Token name = Consume(TokenType.IDENTIFIER, "Expected variable name after 'var'");
+                Expression value = Match(TokenType.EQUALS) ? ParseExpression() : null;
                 Consume(TokenType.SEMICOLON, "Expected ';' after variable declaration");
 
-                return new Statement.TopVariableDef(visibility, name.Location, (string)name.Value);
+                return new Statement.TopVariableDef(visibility, name.Location, (string)name.Value, value);
             }
 
             if(Match(TokenType.FUNC))
@@ -184,7 +185,7 @@ namespace VD.Blaze.Parser
             Expression expr = ParseExpression();
 
             // Only allow Assignments and Function Calls
-            if(!(expr is Expression.Call || expr is Expression.AssignVariable))
+            if(!(expr is Expression.Call || expr is Expression.AssignVariable || expr is Expression.SetIndex))
                 throw new ParserException(Peek().Location.Source, Peek().Location.Line, "Expected a statement");
 
             Consume(TokenType.SEMICOLON, "Expected ';' after statement");
@@ -207,7 +208,11 @@ namespace VD.Blaze.Parser
                     Expression value = ParseExpression();
                     left = new Expression.AssignVariable(variable.Data.Location, (string)variable.Data.Value, value);
                 }
-                // TODO: Assign to indexing operations
+                else if(left is Expression.GetIndex getIndex)
+                {
+                    Expression value = ParseExpression();
+                    left = new Expression.SetIndex(getIndex.Left, getIndex.Index, value);
+                }
             }
 
             return left;
@@ -268,7 +273,16 @@ namespace VD.Blaze.Parser
                 }
                 else if(Match(TokenType.OPEN_SQUARE))
                 {
-                    // TODO: Indexing
+                    Expression idx = ParseExpression();
+                    Consume(TokenType.CLOSE_SQUARE, "Expected ']' after index");
+
+                    left = new Expression.GetIndex(left, idx);
+                }
+                else if(Match(TokenType.DOT))
+                {
+                    Token idx = Consume(TokenType.IDENTIFIER, "Expected property after '.'");
+
+                    left = new Expression.GetIndex(left, new Expression.String((string)idx.Value));
                 }
                 else
                 {
@@ -301,6 +315,28 @@ namespace VD.Blaze.Parser
                 Expression expr = ParseExpression();
                 Consume(TokenType.CLOSE_PAREN, "Expected ')'");
                 return expr;
+            }
+
+            if (Match(TokenType.EVENT))
+                return new Expression.EventValue();
+
+            if (Match(TokenType.OPEN_SQUARE))
+            {
+                List<Expression> exprs = new List<Expression>();
+
+                if (!Check(TokenType.CLOSE_SQUARE))
+                {
+                    while (true)
+                    {
+                        exprs.Add(ParseExpression());
+                        if (Check(TokenType.CLOSE_SQUARE) || !Available()) break;
+                        Consume(TokenType.COMMA, "Expected ',' after list value");
+                    }
+                }
+
+                Consume(TokenType.CLOSE_SQUARE, "Expected ']' after list values");
+
+                return new Expression.ListValue(exprs);
             }
 
             if (Match(TokenType.FUNC))

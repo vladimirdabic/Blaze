@@ -20,6 +20,10 @@ namespace VD.Blaze.Parser
             void VisitCall(Call call);
             void VisitAssignVar(AssignVariable assignVar);
             void VisitFunctionValue(FuncValue funcValue);
+            void VisitEventValue(EventValue eventValue);
+            void VisitListValue(ListValue listValue);
+            void VisitGetIndex(GetIndex getIndex);
+            void VisitSetIndex(SetIndex setIndex);
         }
 
         public abstract void Accept(IVisitor visitor);
@@ -168,6 +172,65 @@ namespace VD.Blaze.Parser
             public override void Accept(IVisitor visitor)
             {
                 visitor.VisitFunctionValue(this);
+            }
+        }
+
+        public class EventValue : Expression
+        {
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.VisitEventValue(this);
+            }
+        }
+
+        public class ListValue : Expression
+        {
+            public List<Expression> Values;
+
+            public ListValue(List<Expression> values)
+            {
+                Values = values;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.VisitListValue(this);
+            }
+        }
+
+        public class GetIndex : Expression
+        {
+            public Expression Left;
+            public Expression Index;
+
+            public GetIndex(Expression left, Expression index)
+            {
+                Left = left;
+                Index = index;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.VisitGetIndex(this);
+            }
+        }
+
+        public class SetIndex : Expression
+        {
+            public Expression Left;
+            public Expression Index;
+            public Expression Value;
+
+            public SetIndex(Expression left, Expression index, Expression value)
+            {
+                Left = left;
+                Index = index;
+                Value = value;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.VisitSetIndex(this);
             }
         }
     }
