@@ -498,6 +498,24 @@ namespace VD.Blaze.Generator
 
             _function.Emit(Opcode.STINDEX);
         }
+
+        public void VisitGetProperty(Expression.GetProperty getProperty)
+        {
+            Constant propName = _module.AddConstant(new Constant.String(getProperty.Property));
+            Evaluate(getProperty.Left);
+
+            _function.Emit(Opcode.LDPROP, propName);
+        }
+
+        public void VisitSetProperty(Expression.SetProperty setProperty)
+        {
+            Constant propName = _module.AddConstant(new Constant.String(setProperty.Property));
+
+            Evaluate(setProperty.Value);
+            Evaluate(setProperty.Left);
+
+            _function.Emit(Opcode.STPROP, propName);
+        }
     }
 
     public class GeneratorException : Exception

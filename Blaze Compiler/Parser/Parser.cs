@@ -185,7 +185,7 @@ namespace VD.Blaze.Parser
             Expression expr = ParseExpression();
 
             // Only allow Assignments and Function Calls
-            if(!(expr is Expression.Call || expr is Expression.AssignVariable || expr is Expression.SetIndex))
+            if(!(expr is Expression.Call || expr is Expression.AssignVariable || expr is Expression.SetIndex || expr is Expression.SetProperty))
                 throw new ParserException(Peek().Location.Source, Peek().Location.Line, "Expected a statement");
 
             Consume(TokenType.SEMICOLON, "Expected ';' after statement");
@@ -212,6 +212,11 @@ namespace VD.Blaze.Parser
                 {
                     Expression value = ParseExpression();
                     left = new Expression.SetIndex(getIndex.Left, getIndex.Index, value);
+                }
+                else if (left is Expression.GetProperty getProperty)
+                {
+                    Expression value = ParseExpression();
+                    left = new Expression.SetProperty(getProperty.Left, getProperty.Property, value);
                 }
             }
 
@@ -282,7 +287,7 @@ namespace VD.Blaze.Parser
                 {
                     Token idx = Consume(TokenType.IDENTIFIER, "Expected property after '.'");
 
-                    left = new Expression.GetIndex(left, new Expression.String((string)idx.Value));
+                    left = new Expression.GetProperty(left, (string)idx.Value);
                 }
                 else
                 {

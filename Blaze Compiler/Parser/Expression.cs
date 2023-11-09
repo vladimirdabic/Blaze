@@ -24,6 +24,8 @@ namespace VD.Blaze.Parser
             void VisitListValue(ListValue listValue);
             void VisitGetIndex(GetIndex getIndex);
             void VisitSetIndex(SetIndex setIndex);
+            void VisitGetProperty(GetProperty getProperty);
+            void VisitSetProperty(SetProperty setProperty);
         }
 
         public abstract void Accept(IVisitor visitor);
@@ -231,6 +233,42 @@ namespace VD.Blaze.Parser
             public override void Accept(IVisitor visitor)
             {
                 visitor.VisitSetIndex(this);
+            }
+        }
+
+        public class GetProperty : Expression
+        {
+            public Expression Left;
+            public string Property;
+
+            public GetProperty(Expression left, string property)
+            {
+                Left = left;
+                Property = property;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.VisitGetProperty(this);
+            }
+        }
+
+        public class SetProperty : Expression
+        {
+            public Expression Left;
+            public string Property;
+            public Expression Value;
+
+            public SetProperty(Expression left, string property, Expression value)
+            {
+                Left = left;
+                Property= property;
+                Value = value;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.VisitSetProperty(this);
             }
         }
     }

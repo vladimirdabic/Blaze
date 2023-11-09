@@ -147,7 +147,7 @@ namespace VD.Blaze.Module
 
         DUP, VARARGS,
 
-        LDLIST, LDOBJ, LDINDEX, STINDEX,
+        LDLIST, LDOBJ, LDINDEX, STINDEX, LDPROP, STPROP,
         LDEVENT,
     }
 

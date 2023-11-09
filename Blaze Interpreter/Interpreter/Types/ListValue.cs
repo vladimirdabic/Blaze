@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VD.Blaze.Interpreter.Types
 {
-    public class ListValue : IValue, IValueIndexable
+    public class ListValue : IValue, IValueIndexable, IValueProperties
     {
         public List<IValue> Values;
         public Dictionary<string, IValue> Properties;
@@ -61,22 +61,6 @@ namespace VD.Blaze.Interpreter.Types
                 if (idx < 0 || idx > Values.Count - 1) throw new IndexOutOfBounds();
 
                 return Values[idx];
-            }
-
-            // internal list functions
-            if (index is StringValue stringValue)
-            {
-                string prop = stringValue.Value;
-
-                switch (prop)
-                {
-                    case "length":
-                        return new NumberValue(Values.Count);
-
-                    default:
-                        if(Properties.ContainsKey(prop)) return Properties[prop];
-                        break; // will go to the throw
-                }
             }
 
             throw new IndexNotFound();
@@ -139,8 +123,25 @@ namespace VD.Blaze.Interpreter.Types
                 throw new InterpreterInternalException();
             });
         }
-    }
 
-    public class IndexOutOfBounds : Exception {}
-    public class IndexNotFound : Exception {}
+        public IValue GetProperty(string name)
+        {
+            switch (name)
+            {
+                case "length":
+                    return new NumberValue(Values.Count);
+
+                default:
+                    if (Properties.ContainsKey(name)) return Properties[name];
+                    break; // will go to the throw
+            }
+
+            throw new PropertyNotFound();
+        }
+
+        public void SetProperty(string name, IValue value)
+        {
+            throw new PropertyNotFound();
+        }
+    }
 }

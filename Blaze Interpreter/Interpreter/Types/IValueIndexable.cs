@@ -11,4 +11,7 @@ namespace VD.Blaze.Interpreter.Types
         IValue GetAtIndex(IValue index);
         void SetAtIndex(IValue index, IValue value);
     }
+
+    public class IndexOutOfBounds : Exception { }
+    public class IndexNotFound : Exception { }
 }

@@ -474,6 +474,57 @@ namespace VD.Blaze.Interpreter
                         }
                         break;
 
+                    case Opcode.LDPROP:
+                        {
+                            IValue obj = _stack.Pop();
+
+                            if (obj is not IValueProperties)
+                            {
+                                Throw($"Object of type '{obj.GetName()}' doesn't have properties");
+                                break;
+                            }
+
+                            IValueProperties indexable = (IValueProperties)obj;
+                            string propName = ((StringValue)_moduleEnv.Constants[oparg]).Value;
+
+                            try
+                            {
+                                _stack.Push(indexable.GetProperty(propName));
+                            }
+                            catch (PropertyNotFound)
+                            {
+                                Throw($"Unknown property '{propName}'");
+                                break;
+                            }
+                        }
+                        break;
+
+                    case Opcode.STPROP:
+                        {
+                            IValue obj = _stack.Pop();
+                            IValue new_value = _stack.Pop();
+
+                            if (obj is not IValueProperties)
+                            {
+                                Throw($"Object of type '{obj.GetName()}' doesn't have properties");
+                                break;
+                            }
+
+                            IValueProperties indexable = (IValueProperties)obj;
+                            string propName = ((StringValue)_moduleEnv.Constants[oparg]).Value;
+
+                            try
+                            {
+                                indexable.SetProperty(propName, new_value);
+                            }
+                            catch (PropertyNotFound)
+                            {
+                                Throw($"Unknown property '{propName}'");
+                                break;
+                            }
+                        }
+                        break;
+
                     case Opcode.LDEVENT:
                         break;
 
