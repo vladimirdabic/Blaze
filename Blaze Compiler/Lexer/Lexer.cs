@@ -18,6 +18,7 @@ namespace VD.Blaze.Lexer
             { "if", TokenType.IF },
             { "else", TokenType.ELSE },
             { "while", TokenType.WHILE },
+            { "for", TokenType.FOR },
             { "break", TokenType.BREAK },
             { "return", TokenType.RETURN },
             { "var", TokenType.VAR },

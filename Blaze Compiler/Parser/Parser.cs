@@ -96,7 +96,10 @@ namespace VD.Blaze.Parser
 
                 while (Available() && !Check(TokenType.CLOSE_BRACE))
                 {
-                    body.Add(ParseStatement());
+                    int line = Peek().Location.Line;
+                    Statement stmt = ParseStatement();
+                    stmt.Line = line;
+                    body.Add(stmt);
                 }
 
                 Consume(TokenType.CLOSE_BRACE, "Expected '}' to close func body");
@@ -106,7 +109,9 @@ namespace VD.Blaze.Parser
 
             if(Match(TokenType.STATIC))
             {
+                int line = Peek().Location.Line;
                 Statement stmt = ParseStatement();
+                stmt.Line = line;
                 return new Statement.StaticStmt(stmt);
             }
 
@@ -172,6 +177,31 @@ namespace VD.Blaze.Parser
                 Statement elseBody = Match(TokenType.ELSE) ? ParseStatement() : null;
 
                 return new Statement.IfStatement(condition, body, elseBody);
+            }
+
+            if (Match(TokenType.WHILE))
+            {
+                Consume(TokenType.OPEN_PAREN, "Expected '(' after while");
+                Expression condition = ParseExpression();
+                Consume(TokenType.CLOSE_PAREN, "Expected ')' after while condition");
+
+                Statement body = ParseStatement();
+
+                return new Statement.WhileStatement(condition, body);
+            }
+
+            if (Match(TokenType.FOR))
+            {
+                Consume(TokenType.OPEN_PAREN, "Expected '(' after for");
+                Statement initializer = ParseStatement();
+                Expression condition = ParseExpression();
+                Consume(TokenType.SEMICOLON, "Expected ';' after for condition");
+                Expression increment = ParseExpression();
+                Consume(TokenType.CLOSE_PAREN, "Expected ')' to close '(' in the for statement");
+
+                Statement body = ParseStatement();
+
+                return new Statement.ForStatement(initializer, condition, increment, body);
             }
 
             if (Match(TokenType.THROW))

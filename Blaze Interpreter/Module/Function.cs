@@ -36,6 +36,14 @@ namespace VD.Blaze.Module
             Instructions.Add(new Instruction(instruction, argument));
         }
 
+        public void Emit(Opcode instruction, ushort argument)
+        {
+            if((argument & 0xff00) != 0)
+                Emit(Opcode.EXTENDED_ARG, (byte)(argument >> 8));
+
+            Emit(instruction, (byte)(argument & 0xff));
+        }
+
         public void Emit(Opcode instruction, Constant constant)
         {
             Instructions.Add(new Instruction(instruction, (byte)constant.Index));
@@ -142,7 +150,7 @@ namespace VD.Blaze.Module
 
         THROW, CATCH, TRY_END,
 
-        EQ, LT, LTE, NOT, JMP, JMPA, JMPT, JMPF,
+        EQ, LT, LTE, NOT, JMP, JMPB, JMPA, JMPT, JMPF,
         OR, AND,
 
         DUP, VARARGS,

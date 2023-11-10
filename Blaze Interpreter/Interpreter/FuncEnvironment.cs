@@ -320,6 +320,10 @@ namespace VD.Blaze.Interpreter
                         _current += oparg - 1;
                         break;
 
+                    case Opcode.JMPB:
+                        _current -= oparg + 1;
+                        break;
+
                     case Opcode.JMPA:
                         _current = oparg;
                         break;

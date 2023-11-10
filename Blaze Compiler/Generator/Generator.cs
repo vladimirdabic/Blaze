@@ -516,6 +516,39 @@ namespace VD.Blaze.Generator
 
             _function.Emit(Opcode.STPROP, propName);
         }
+
+        public void VisitWhile(Statement.WhileStatement whileStmt)
+        {
+            int conditionIdx = _function.Instructions.Count;
+            Evaluate(whileStmt.Condition);
+
+            int jmpIdx = _function.Instructions.Count;
+            _function.Emit(Opcode.JMPF, 0);
+
+            Evaluate(whileStmt.Body);
+            _function.Emit(Opcode.JMPB, (ushort)(_function.Instructions.Count - conditionIdx));
+
+            _function.Instructions[jmpIdx] = new Instruction(Opcode.JMPF, (byte)(_function.Instructions.Count - jmpIdx));
+        }
+
+        public void VisitFor(Statement.ForStatement forStmt)
+        {
+            _localEnv.PushFrame();
+            Evaluate(forStmt.Initializer);
+
+            int conditionIdx = _function.Instructions.Count;
+            Evaluate(forStmt.Condition);
+
+            int jmpIdx = _function.Instructions.Count;
+            _function.Emit(Opcode.JMPF, 0);
+
+            Evaluate(forStmt.Body);
+            Evaluate(forStmt.Increment);
+            _function.Emit(Opcode.JMPB, (ushort)(_function.Instructions.Count - conditionIdx));
+
+            _function.Instructions[jmpIdx] = new Instruction(Opcode.JMPF, (byte)(_function.Instructions.Count - jmpIdx));
+            _localEnv.PopFrame();
+        }
     }
 
     public class GeneratorException : Exception

@@ -26,6 +26,8 @@ namespace VD.Blaze.Parser
             void VisitIf(IfStatement ifStmt);
             void VisitStaticStmt(StaticStmt staticStmt);
             void VisitTopEventDef(TopEventDef topEventDef);
+            void VisitWhile(WhileStatement whileStmt);
+            void VisitFor(ForStatement forStmt);
         }
 
         public abstract void Accept(IVisitor visitor);
@@ -227,6 +229,44 @@ namespace VD.Blaze.Parser
             public override void Accept(IVisitor visitor)
             {
                 visitor.VisitIf(this);
+            }
+        }
+
+        public class WhileStatement : Statement
+        {
+            public Expression Condition;
+            public Statement Body;
+
+            public WhileStatement(Expression condition, Statement body)
+            {
+                Condition = condition;
+                Body = body;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.VisitWhile(this);
+            }
+        }
+
+        public class ForStatement : Statement
+        {
+            public Statement Initializer;
+            public Expression Condition;
+            public Expression Increment;
+            public Statement Body;
+
+            public ForStatement(Statement initializer, Expression condition, Expression increment, Statement body)
+            {
+                Condition = condition;
+                Body = body;
+                Increment = increment;
+                Initializer = initializer;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.VisitFor(this);
             }
         }
 
