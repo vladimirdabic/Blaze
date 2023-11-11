@@ -19,10 +19,22 @@ namespace VD.Blaze.Interpreter.Types
 
         public bool Equals(IValue other)
         {
-            if(other == this) return true;
             if (other is NumberValue otherNum) return Value == otherNum.Value;
 
             return false;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if(obj is NumberValue otherNum)
+                return Value == otherNum.Value;
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
 
         public string GetName()

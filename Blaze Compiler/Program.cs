@@ -28,11 +28,11 @@ namespace Blaze_Compiler
                 var tree = parser.Parse(tokens);
                 Module module = generator.Generate(tree, "test.blz");
 
-                MemoryStream stream = new MemoryStream();
-                BinaryWriter writer = new BinaryWriter(stream);
-                module.ToBinary(writer);
-
-                File.WriteAllBytes("test.blzm", stream.ToArray());
+                using (FileStream stream = File.Open("test.blzm", FileMode.Create, FileAccess.Write))
+                {
+                    BinaryWriter writer = new BinaryWriter(stream);
+                    module.ToBinary(writer);
+                }
 
                 Console.WriteLine("Compiled");
             } 

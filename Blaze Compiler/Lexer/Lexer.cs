@@ -96,6 +96,7 @@ namespace VD.Blaze.Lexer
                 case ']': _tokens.Add(new Token(TokenType.CLOSE_SQUARE, _line, _context)); break;
 
                 case ';': _tokens.Add(new Token(TokenType.SEMICOLON, _line, _context)); break;
+                case ':': _tokens.Add(new Token(TokenType.COLON, _line, _context)); break;
                 case ',': _tokens.Add(new Token(TokenType.COMMA, _line, _context)); break;
                 case '.': _tokens.Add(new Token(TokenType.DOT, _line, _context)); break;
 

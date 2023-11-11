@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VD.Blaze.Interpreter.Types
 {
-    public class ListValue : IValue, IValueIndexable, IValueProperties
+    public class ListValue : IValue, IValueIndexable, IValueProperties, IValueIterable
     {
         public List<IValue> Values;
         public Dictionary<string, IValue> Properties;
@@ -142,6 +142,11 @@ namespace VD.Blaze.Interpreter.Types
         public void SetProperty(string name, IValue value)
         {
             throw new PropertyNotFound();
+        }
+
+        public IteratorValue GetIterator()
+        {
+            return new ListIterator(this);
         }
     }
 }

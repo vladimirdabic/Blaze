@@ -32,5 +32,15 @@ namespace VD.Blaze.Interpreter.Types
         {
             return false;
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is NullValue;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
 }

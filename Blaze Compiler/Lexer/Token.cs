@@ -47,7 +47,7 @@ namespace VD.Blaze.Lexer
         OPEN_PAREN, CLOSE_PAREN, OPEN_BRACE, CLOSE_BRACE, OPEN_SQUARE, CLOSE_SQUARE,
 
         // ; , .
-        SEMICOLON, COMMA, DOT,
+        SEMICOLON, COLON, COMMA, DOT,
 
         // = ! < > == != <= >=
         EQUALS, BANG, LESS, GREATER, DOUBLE_EQUALS, NOT_EQUALS, LESS_EQUALS, GREATER_EQUALS,

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VD.Blaze.Interpreter.Types;
 using VD.Blaze.Lexer;
 
 namespace VD.Blaze.Parser
@@ -26,6 +27,8 @@ namespace VD.Blaze.Parser
             void VisitSetIndex(SetIndex setIndex);
             void VisitGetProperty(GetProperty getProperty);
             void VisitSetProperty(SetProperty setProperty);
+            void VisitDictValue(DictValue dictValue);
+            void VisitIterator(Iterator iteratorValue);
         }
 
         public abstract void Accept(IVisitor visitor);
@@ -269,6 +272,36 @@ namespace VD.Blaze.Parser
             public override void Accept(IVisitor visitor)
             {
                 visitor.VisitSetProperty(this);
+            }
+        }
+
+        public class DictValue : Expression
+        {
+            public List<(Expression key, Expression value)> Pairs;
+
+            public DictValue(List<(Expression, Expression)> pairs)
+            {
+                Pairs = pairs;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.VisitDictValue(this);
+            }
+        }
+
+        public class Iterator : Expression
+        {
+            public Expression Value;
+
+            public Iterator(Expression value)
+            {
+                Value = value;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.VisitIterator(this);
             }
         }
     }

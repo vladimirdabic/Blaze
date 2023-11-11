@@ -330,6 +330,13 @@ namespace VD.Blaze.Parser
 
         private Expression ParsePrimary()
         {
+            // Temporary, might leave it in
+            if (MatchIdentifier("iter"))
+            {
+                Expression value = ParseCall();
+                return new Expression.Iterator(value);
+            }
+
             if (Match(TokenType.NUMBER))
                 return new Expression.Number((double)Prev().Value);
 
@@ -372,6 +379,30 @@ namespace VD.Blaze.Parser
                 Consume(TokenType.CLOSE_SQUARE, "Expected ']' after list values");
 
                 return new Expression.ListValue(exprs);
+            }
+
+            if (Match(TokenType.OPEN_BRACE))
+            {
+                var pairs = new List<(Expression, Expression)>();
+
+                if (!Check(TokenType.CLOSE_BRACE))
+                {
+                    while (true)
+                    {
+                        var key = ParseExpression();
+                        Consume(TokenType.COLON, "Expected ':' and entry value");
+                        var value = ParseExpression();
+
+                        pairs.Add((key, value));
+
+                        if (Check(TokenType.CLOSE_BRACE) || !Available()) break;
+                        Consume(TokenType.COMMA, "Expected ',' after dictionary entry");
+                    }
+                }
+
+                Consume(TokenType.CLOSE_BRACE, "Expected '}' to close dictionary");
+
+                return new Expression.DictValue(pairs);
             }
 
             if (Match(TokenType.FUNC))
@@ -429,6 +460,17 @@ namespace VD.Blaze.Parser
                     _current++;
                     return true;
                 }
+            }
+
+            return false;
+        }
+
+        private bool MatchIdentifier(string value)
+        {
+            if ((Peek().Type == TokenType.IDENTIFIER) && ((string)Peek().Value) == value)
+            {
+                _current++;
+                return true;
             }
 
             return false;

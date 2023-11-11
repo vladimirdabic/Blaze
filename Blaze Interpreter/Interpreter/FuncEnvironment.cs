@@ -415,6 +415,19 @@ namespace VD.Blaze.Interpreter
                         break;
 
                     case Opcode.LDOBJ:
+                        {
+                            DictionaryValue dictionaryValue = new DictionaryValue();
+
+                            for (int i = 0; i < oparg; ++i)
+                            {
+                                IValue key = _stack.Pop();
+                                IValue value = _stack.Pop();
+
+                                dictionaryValue.Entries[key] = value;
+                            }
+
+                            _stack.Push(dictionaryValue);
+                        }
                         break;
 
                     case Opcode.LDINDEX:
@@ -530,6 +543,20 @@ namespace VD.Blaze.Interpreter
                         break;
 
                     case Opcode.LDEVENT:
+                        break;
+
+                    case Opcode.ITER:
+                        {
+                            IValue value = _stack.Pop();
+
+                            if(value is not IValueIterable)
+                            {
+                                Throw($"Object of type '{value.GetName()}' is not iterable");
+                            }
+
+                            IteratorValue iterator = ((IValueIterable)value).GetIterator();
+                            _stack.Push(iterator);
+                        }
                         break;
 
                     default:

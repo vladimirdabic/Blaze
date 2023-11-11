@@ -549,6 +549,23 @@ namespace VD.Blaze.Generator
             _function.Instructions[jmpIdx] = new Instruction(Opcode.JMPF, (byte)(_function.Instructions.Count - jmpIdx));
             _localEnv.PopFrame();
         }
+
+        public void VisitDictValue(Expression.DictValue dictValue)
+        {
+            foreach(var pair in dictValue.Pairs)
+            {
+                Evaluate(pair.value);
+                Evaluate(pair.key);
+            }
+
+            _function.Emit(Opcode.LDOBJ, (byte)dictValue.Pairs.Count);
+        }
+
+        public void VisitIterator(Expression.Iterator iteratorValue)
+        {
+            Evaluate(iteratorValue.Value);
+            _function.Emit(Opcode.ITER);
+        }
     }
 
     public class GeneratorException : Exception

@@ -35,6 +35,19 @@ namespace VD.Blaze.Interpreter.Types
             return false;
         }
 
+        public override bool Equals(object obj)
+        {
+            if(obj is BooleanValue otherBool)
+                return Value == otherBool.Value;
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
         public string GetName()
         {
             return "boolean";
