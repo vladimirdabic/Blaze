@@ -6,11 +6,18 @@ using System.Threading.Tasks;
 
 namespace VD.Blaze.Interpreter.Types
 {
-    public class StringValue : IValue, IValueBinOp
+    public class StringValue : IValue, IValueBinOp, IValueProperties, IValueIndexable, IValueIterable
     {
         public string Value;
+        public Dictionary<string, IValue> Properties;
 
-        public StringValue(string value) { Value = value; }
+        public StringValue(string value)
+        {
+            Value = value;
+            Properties = new Dictionary<string, IValue>();
+
+            DefineProperties();
+        }
 
         public IValue Copy()
         {
@@ -91,6 +98,81 @@ namespace VD.Blaze.Interpreter.Types
         public bool AsBoolean()
         {
             return true;
+        }
+
+        public IValue GetAtIndex(IValue index)
+        {
+            if (index is NumberValue numberValue)
+            {
+                int idx = Convert.ToInt32(numberValue.Value);
+
+                // out of bounds
+                if (idx < 0 || idx > Value.Length - 1) throw new IndexOutOfBounds();
+
+                return new StringValue(Value[idx].ToString());
+            }
+
+            throw new IndexNotFound();
+        }
+
+        public void SetAtIndex(IValue index, IValue value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IValue GetProperty(string name)
+        {
+            switch(name)
+            {
+                case "length":
+                    return new NumberValue(Value.Length);
+
+                default:
+                    if (Properties.ContainsKey(name)) return Properties[name];
+                    break;
+            }
+
+            throw new PropertyNotFound();
+        }
+
+        public void SetProperty(string name, IValue value)
+        {
+            throw new PropertyNotFound();
+        }
+
+        private void DefineProperties()
+        {
+            Properties["split"] = new BuiltinFunctionValue("string.split", (Interpreter itp, List<IValue> args) =>
+            {
+                if (args.Count != 1)
+                {
+                    itp.Stack.Push(new StringValue("Expected delimiter parameter for function string.split"));
+                    throw new InterpreterInternalException();
+                }
+
+                IValue arg = args[0];
+
+                if (arg is StringValue stringValue)
+                {
+                    string delimiter = stringValue.Value;
+                    var parts = Value.Split(new string[] { delimiter }, StringSplitOptions.None);
+
+                    var res = new ListValue();
+                    foreach (var part in parts)
+                        res.Values.Add(new StringValue(part));
+
+                    return res;
+                }
+
+
+                itp.Stack.Push(new StringValue("Expected string parameter for delimiter in function string.split"));
+                throw new InterpreterInternalException();
+            });
+        }
+
+        public IteratorValue GetIterator()
+        {
+            return new StringIterator(Value);
         }
     }
 }

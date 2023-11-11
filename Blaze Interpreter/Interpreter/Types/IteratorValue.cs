@@ -73,7 +73,7 @@ namespace VD.Blaze.Interpreter.Types
 
         public override IValue Next()
         {
-            if (!Available()) return null;
+            if (!Available()) return Interpreter.NullInstance;
             return Value.Values[_index++];
         }
 
@@ -116,6 +116,29 @@ namespace VD.Blaze.Interpreter.Types
         public override bool Available()
         {
             return _hasNext;
+        }
+    }
+
+    public class StringIterator : IteratorValue
+    {
+        public string Value;
+        private int _index;
+
+        public StringIterator(string value)
+        {
+            Value = value;
+            _index = 0;
+        }
+
+        public override IValue Next()
+        {
+            if (!Available()) return Interpreter.NullInstance;
+            return new StringValue(Value[_index++].ToString());
+        }
+
+        public override bool Available()
+        {
+            return _index < Value.Length;
         }
     }
 }
