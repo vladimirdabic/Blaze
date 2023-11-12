@@ -31,7 +31,7 @@ namespace VD.Blaze.Interpreter
         }
 
         /// <summary>
-        /// Loads a Module and returns a ModuleEnvironment
+        /// Loads a Module and returns a ModuleEnv
         /// </summary>
         /// <param name="module">Module to load</param>
         /// <param name="parent">Optional parent environment</param>

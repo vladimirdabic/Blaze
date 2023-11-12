@@ -7,27 +7,29 @@ using VD.Blaze.Module;
 using VD.Blaze.Parser;
 using VD.Blaze.Lexer;
 using System.Runtime.Remoting.Activation;
+using VD.Blaze.Generator.Environment;
+using static VD.Blaze.Generator.Environment.BaseEnv;
+using System.Xml.Linq;
 
 namespace VD.Blaze.Generator
 {
     public class Generator : Expression.IVisitor, Statement.IVisitor
     {
         private Module.Module _module;
-        private Dictionary<string, Variable> _variables;
-        // private Dictionary<string, Function> _functions;
+        private readonly Dictionary<string, Variable> _variables;
 
         private Stack<Function> _functionStack;
         private Function _function;
         private string _source;
         private int _line;
 
-        private LocalEnvironment _localEnv;
+        // private LocalEnvironment _localEnv;
+        private BaseEnv _env;
 
         public Generator()
         {
             _functionStack = new Stack<Function>();
             _variables = new Dictionary<string, Variable>();
-            // _functions = new Dictionary<string, Function>();
         }
 
         public Module.Module Generate(Statement statement, string source)
@@ -35,9 +37,8 @@ namespace VD.Blaze.Generator
             _module = new Module.Module();
             _functionStack.Clear();
             _variables.Clear();
-            // _functions.Clear();
             _function = null;
-            _localEnv = null;
+            _env = null;
             _source = source;
             _line = 1;
 
@@ -95,7 +96,7 @@ namespace VD.Blaze.Generator
             // Setup function and local env
             _function = _module.CreateFunction(topFuncDef.Name, topFuncDef.Args.Count, visibility);
             // _functions[topFuncDef.Name] = _function;
-            _localEnv = new LocalEnvironment(_localEnv);
+            _env = new FuncEnv(_env);
             
             // CreateFunction adds a variable binding for the function, it's gonna be the last one in the list after the call
             _variables[topFuncDef.Name] = _module.Variables[_module.Variables.Count - 1];
@@ -103,9 +104,8 @@ namespace VD.Blaze.Generator
             // Setup arg indicies
             for(int i = 0;  i < topFuncDef.Args.Count; i++)
             {
-                _localEnv.Args[topFuncDef.Args[i]] = i;
+                ((FuncEnv)_env).Arguments[topFuncDef.Args[i]] = i;
             }
-
 
             foreach (Statement stmt in topFuncDef.Body)
             {
@@ -118,7 +118,7 @@ namespace VD.Blaze.Generator
             if(_functionStack.Count != 0)
                 _function = _functionStack.Pop();
 
-            _localEnv = _localEnv.Parent;
+            _env = _env.Parent;
         }
 
         public void VisitTopVarDef(Statement.TopVariableDef topVarDef)
@@ -228,21 +228,22 @@ namespace VD.Blaze.Generator
         {
             string name = (string)variable.Data.Value;
 
-            (LocalVariable local, int level) = _localEnv.GetLocal(name);
+            (IVariable envVar, int level) = _env.GetVariable(name);
             
-            if(local is not null)
+            if(envVar is not null)
             {
-                if (level != 0)
-                    _function.Emit(Opcode.EXTENDED_ARG, (byte)level);
+                if (envVar is FuncEnv.Variable local)
+                {
+                    if (level != 0)
+                        _function.Emit(Opcode.EXTENDED_ARG, (byte)level);
 
-                _function.Emit(Opcode.LDLOCAL, local);
-                return;
-            }
-
-            if(_localEnv.Args.ContainsKey(name))
-            {
-                _function.Emit(Opcode.LDARG, (byte)_localEnv.Args[name]);
-                return;
+                    // must be an argument
+                    if(local.LocalVar is null)
+                        _function.Emit(Opcode.LDARG, (byte)local.Index);
+                    else
+                        _function.Emit(Opcode.LDLOCAL, local.LocalVar);
+                    return;
+                }
             }
 
             if (_variables.ContainsKey(name))
@@ -280,7 +281,8 @@ namespace VD.Blaze.Generator
         public void VisitLocalVarDef(Statement.LocalVariableDef localVarDef)
         {
             LocalVariable local = _function.DeclareLocal();
-            _localEnv.DefineLocal(localVarDef.Name, local);
+            var variable = new FuncEnv.Variable(localVarDef.Name, local);
+            _env.DefineVariable(localVarDef.Name, variable);
 
             if(localVarDef.Value is not null)
             {
@@ -294,21 +296,22 @@ namespace VD.Blaze.Generator
             Evaluate(assignVar.Value);
             _function.Emit(Opcode.DUP, 1);
 
-            (LocalVariable local, int level) = _localEnv.GetLocal(assignVar.Name);
+            (IVariable envVar, int level) = _env.GetVariable(assignVar.Name);
 
-            if (local is not null)
+            if(envVar is not null)
             {
-                if (level != 0)
-                    _function.Emit(Opcode.EXTENDED_ARG, (byte)level);
+                if (envVar is FuncEnv.Variable local)
+                {
+                    if (level != 0)
+                        _function.Emit(Opcode.EXTENDED_ARG, (byte)level);
 
-                _function.Emit(Opcode.STLOCAL, local);
-                return;
-            }
+                    if (local.LocalVar is null)
+                        _function.Emit(Opcode.STARG, (byte)local.Index);
+                    else
+                        _function.Emit(Opcode.STLOCAL, local.LocalVar);
 
-            if (_localEnv.Args.ContainsKey(assignVar.Name))
-            {
-                _function.Emit(Opcode.STARG, (byte)_localEnv.Args[assignVar.Name]);
-                return;
+                    return;
+                }
             }
 
             if (_variables.ContainsKey(assignVar.Name))
@@ -333,7 +336,7 @@ namespace VD.Blaze.Generator
 
         public void VisitBlock(Statement.Block block)
         {
-            _localEnv.PushFrame();
+            _env.PushFrame();
 
             foreach(var stmt in block.Statements)
             {
@@ -343,7 +346,7 @@ namespace VD.Blaze.Generator
                 if (stmt is Statement.Return) break;
             }
 
-            _localEnv.PopFrame();
+            _env.PopFrame();
         }
 
         public void VisitTryCatch(Statement.TryCatch tryCatch)
@@ -360,12 +363,12 @@ namespace VD.Blaze.Generator
             // Modify arg of catch instruction 
             _function.Instructions[catchInstIdx] = new Instruction(Opcode.CATCH, (byte)(_function.Instructions.Count - catchInstIdx));
 
-            _localEnv.PushFrame();
+            _env.PushFrame();
 
             if(tryCatch.CatchName is not null)
             {
                 LocalVariable catchVar = _function.DeclareLocal();
-                _localEnv.DefineLocal(tryCatch.CatchName, catchVar);
+                _env.DefineVariable(tryCatch.CatchName, new FuncEnv.Variable(tryCatch.CatchName, catchVar));
                 _function.Emit(Opcode.STLOCAL, catchVar);
             }
             else
@@ -374,7 +377,7 @@ namespace VD.Blaze.Generator
             }
 
             Evaluate(tryCatch.CatchStmt);
-            _localEnv.PopFrame();
+            _env.PopFrame();
 
             // Modify arg of jmp instruction 
             _function.Instructions[jmpInstIdx] = new Instruction(Opcode.JMP, (byte)(_function.Instructions.Count - jmpInstIdx));
@@ -410,12 +413,12 @@ namespace VD.Blaze.Generator
             // Setup function and local env
             Function function = _module.CreateAnonymousFunction(funcValue.Args.Count);
             _function = function;
-            _localEnv = new LocalEnvironment(_localEnv);
+            _env = new FuncEnv(_env);
 
             // Setup arg indicies
             for (int i = 0; i < funcValue.Args.Count; i++)
             {
-                _localEnv.Args[funcValue.Args[i]] = i;
+                ((FuncEnv)_env).Arguments[funcValue.Args[i]] = i;
             }
 
             foreach (Statement stmt in funcValue.Body)
@@ -429,7 +432,7 @@ namespace VD.Blaze.Generator
             if (_functionStack.Count != 0)
                 _function = _functionStack.Pop();
 
-            _localEnv = _localEnv.Parent;
+            _env = _env.Parent;
             _function.Emit(Opcode.LDFUNC, function);
         }
 
@@ -450,14 +453,14 @@ namespace VD.Blaze.Generator
 
             // Static function
             _function = _module.Functions[0];
-            _localEnv = new LocalEnvironment(_localEnv);
+            _env = new FuncEnv(_env);
 
             Evaluate(staticStmt.Stmt);
 
             if (_functionStack.Count != 0)
                 _function = _functionStack.Pop();
 
-            _localEnv = _localEnv.Parent;
+            _env = _env.Parent;
         }
 
         public void VisitEventValue(Expression.EventValue eventValue)
@@ -533,7 +536,7 @@ namespace VD.Blaze.Generator
 
         public void VisitFor(Statement.ForStatement forStmt)
         {
-            _localEnv.PushFrame();
+            _env.PushFrame();
             Evaluate(forStmt.Initializer);
 
             int conditionIdx = _function.Instructions.Count;
@@ -547,7 +550,7 @@ namespace VD.Blaze.Generator
             _function.Emit(Opcode.JMPB, (ushort)(_function.Instructions.Count - conditionIdx));
 
             _function.Instructions[jmpIdx] = new Instruction(Opcode.JMPF, (byte)(_function.Instructions.Count - jmpIdx));
-            _localEnv.PopFrame();
+            _env.PopFrame();
         }
 
         public void VisitDictValue(Expression.DictValue dictValue)
