@@ -12,15 +12,17 @@ namespace VD.Blaze.Interpreter
     {
         public int Current;
         public List<Instruction> Instructions;
+        public ModuleEnv Module;
         public BaseEnv Environment;
         public Stack<int> ExceptionStack;
 
-        public ExecutionContext(int current, List<Instruction> instructions, BaseEnv environment, Stack<int> exceptionStack)
+        public ExecutionContext(int current, List<Instruction> instructions, BaseEnv environment, ModuleEnv module, Stack<int> exceptionStack)
         {
             Current = current;
             Instructions = instructions;
             Environment = environment;
             ExceptionStack = exceptionStack;
+            Module = module;
         }
     }
 }

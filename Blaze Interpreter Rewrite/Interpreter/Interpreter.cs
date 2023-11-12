@@ -41,7 +41,7 @@ namespace VD.Blaze.Interpreter
             ModuleEnv env = new ModuleEnv(module, parent);
 
             // TODO: Error checking
-            FunctionValue staticFunc = new FunctionValue(env.Module.Functions[0], null);
+            FunctionValue staticFunc = new FunctionValue(env.Module.Functions[0], env, env);
 
             RunFunction(env, staticFunc, null);
             return env;
@@ -122,7 +122,8 @@ namespace VD.Blaze.Interpreter
                     case Opcode.LDVAR:
                         {
                             string name = ((StringValue)Module.Constants[opargi]).Value;
-                            IVariable variable = Module.GetVariable(name);
+                            // IVariable variable = Module.GetVariable(name);
+                            IVariable variable = Environment.GetVariable(name);
 
                             if (variable is null)
                             {
@@ -169,7 +170,8 @@ namespace VD.Blaze.Interpreter
                     case Opcode.STVAR:
                         {
                             string name = ((StringValue)Module.Constants[opargi]).Value;
-                            IVariable variable = Module.GetVariable(name);
+                            //IVariable variable = Module.GetVariable(name);
+                            IVariable variable = Environment.GetVariable(name);
 
                             if (variable is null)
                             {
@@ -611,7 +613,7 @@ namespace VD.Blaze.Interpreter
 
         internal void PushContext(List<Instruction> instructions = null)
         {
-            _contexts.Push(new ExecutionContext(_current, _instructions, Environment, _exceptionStack));
+            _contexts.Push(new ExecutionContext(_current, _instructions, Environment, Module, _exceptionStack));
             _current = 0;
             _instructions = instructions;
             _exceptionStack = new Stack<int>();
@@ -624,6 +626,7 @@ namespace VD.Blaze.Interpreter
             _instructions = ctx.Instructions;
             Environment = ctx.Environment;
             _exceptionStack = ctx.ExceptionStack;
+            Module = ctx.Module;
         }
     }
 

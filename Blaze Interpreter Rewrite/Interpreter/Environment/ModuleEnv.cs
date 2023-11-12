@@ -66,7 +66,7 @@ namespace VD.Blaze.Interpreter.Environment
         /// <returns></returns>
         public FunctionValue GetFunction(int index)
         {
-            return new FunctionValue(Module.Functions[index], null);
+            return new FunctionValue(Module.Functions[index], this, this);
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace VD.Blaze.Interpreter.Environment
             foreach (var func in Module.Functions)
             {
                 if (func.Name is not null && ((StringValue)Constants[func.Name.Index]).Value == name)
-                    return new FunctionValue(func, null);
+                    return new FunctionValue(func, this, this);
             }
 
             return null;

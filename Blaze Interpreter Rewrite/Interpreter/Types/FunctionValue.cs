@@ -16,16 +16,18 @@ namespace VD.Blaze.Interpreter.Types
         public int NumOfLocals { get; private set; }
         public List<Instruction> Instructions;
         public BaseEnv Closure;
+        public ModuleEnv ParentModule;
 
-        public FunctionValue(Function func, BaseEnv env)
+        public FunctionValue(Function func, BaseEnv env, ModuleEnv parentModule)
         {
             NumOfArgs = func.NumOfArgs;
             Varargs = func.Varargs;
             NumOfLocals = func.NumOfLocals;
             Instructions = func.Instructions;
+            ParentModule = parentModule;
             Closure = env;
 
-            if(func.Name is not null)
+            if (func.Name is not null)
                 Name = ((Constant.String)func.Name).Value;
         }
 
@@ -60,6 +62,7 @@ namespace VD.Blaze.Interpreter.Types
             // interpreter.PushContext(Instructions);
             interpreter._instructions = Instructions;
             interpreter.Environment = env;
+            interpreter.Module = ParentModule;
         }
 
         public string AsString()

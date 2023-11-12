@@ -21,7 +21,7 @@ namespace VD.Blaze.Interpreter.Environment
 
         public override IVariable GetVariable(string name)
         {
-            throw new NotImplementedException();
+            return Parent?.GetVariable(name);
         }
 
         public override IVariable GetVariable(int index)
