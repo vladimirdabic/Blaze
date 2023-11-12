@@ -31,7 +31,7 @@ namespace VD.Blaze.Module
 
         public void Emit(Opcode instruction, uint argument)
         {
-            Instructions.Add(new Instruction(instruction, argument));
+            Instructions.Add(new Instruction(instruction, argument, (uint)ParentModule.CurrentLine));
         }
 
         public void Emit(Opcode instruction, int argument)
@@ -108,11 +108,16 @@ namespace VD.Blaze.Module
 
                     if (found)
                     {
+                        if (ParentModule.Debug)
+                            bw.Write((ushort)inst.Line);
+
                         bw.Write((byte)Opcode.EXTENDED_ARG);
                         bw.Write(ext_arg);
                     }
                 }
 
+                if (ParentModule.Debug)
+                    bw.Write((ushort)inst.Line);
 
                 bw.Write((byte)inst.Opcode);
                 bw.Write((byte)(inst.Argument & 0xFF));
@@ -132,17 +137,19 @@ namespace VD.Blaze.Module
             int inst_count = br.ReadUInt16();
             for(int i = 0; i < inst_count; i++)
             {
+                ushort line_num = (ushort)(ParentModule.Debug ? br.ReadUInt16() : 0);
                 Opcode opcode = (Opcode)br.ReadByte();
                 uint arg = br.ReadByte();
 
                 while (opcode == Opcode.EXTENDED_ARG)
                 {
                     i++;
+                    line_num = (ushort)(ParentModule.Debug ? br.ReadUInt16() : 0);
                     opcode = (Opcode)br.ReadByte();
                     arg = (arg << 8) | br.ReadByte();
                 }
 
-                Instructions.Add(new Instruction(opcode, arg));
+                Instructions.Add(new Instruction(opcode, arg, line_num));
             }
         }
     }
@@ -176,11 +183,17 @@ namespace VD.Blaze.Module
     {
         public Opcode Opcode;
         public uint Argument;
+        public uint Line;
 
-        public Instruction(Opcode opcode, uint argument)
+        public Instruction(Opcode opcode, uint argument) : this(opcode, argument, 0)
+        {
+        }
+
+        public Instruction(Opcode opcode, uint argument, uint line)
         {
             Opcode = opcode;
             Argument = argument;
+            Line = line;
         }
     }
 

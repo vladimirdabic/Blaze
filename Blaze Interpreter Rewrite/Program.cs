@@ -42,7 +42,18 @@ namespace Blaze_Interpreter_Rewrite
             Console.WriteLine("Running function main: ");
 
             var func = env.GetFunction("main");
-            interpreter.RunFunction(env, func, null);
+           
+            try
+            {
+                interpreter.RunFunction(env, func, null);
+            }
+            catch(InterpreterException e)
+            {
+                if(e.Location.line == 0)
+                    Console.WriteLine($"[{e.Location.filename}] {e.Value.AsString()}");
+                else
+                    Console.WriteLine($"[{e.Location.filename}:{e.Location.line}] {e.Value.AsString()}");
+            }
 
             Console.ReadKey();
         }

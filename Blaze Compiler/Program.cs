@@ -26,7 +26,7 @@ namespace Blaze_Compiler
 
                 var tokens = lexer.Lex(program, "test.blz");
                 var tree = parser.Parse(tokens);
-                Module module = generator.Generate(tree, "test.blz");
+                Module module = generator.Generate(tree, "test.blz", false);
 
                 using (FileStream stream = File.Open("test.blzm", FileMode.Create, FileAccess.Write))
                 {

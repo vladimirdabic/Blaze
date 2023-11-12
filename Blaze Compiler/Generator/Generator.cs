@@ -32,9 +32,11 @@ namespace VD.Blaze.Generator
             _variables = new Dictionary<string, Variable>();
         }
 
-        public Module.Module Generate(Statement statement, string source)
+        public Module.Module Generate(Statement statement, string source, bool debug = false)
         {
             _module = new Module.Module();
+            _module.Name = source;
+            _module.Debug = debug;
             _functionStack.Clear();
             _variables.Clear();
             _function = null;
@@ -50,7 +52,10 @@ namespace VD.Blaze.Generator
         private void Evaluate(Statement stmt)
         {
             if(stmt.Line != 0)
+            {
                 _line = stmt.Line;
+                _module.CurrentLine = _line;
+            }
             
             stmt.Accept(this);
         }
@@ -361,7 +366,7 @@ namespace VD.Blaze.Generator
             _function.Emit(Opcode.JMP, 0);
 
             // Modify arg of catch instruction 
-            _function.Instructions[catchInstIdx] = new Instruction(Opcode.CATCH, (byte)(_function.Instructions.Count - catchInstIdx));
+            _function.Instructions[catchInstIdx].Argument = (uint)(_function.Instructions.Count - catchInstIdx);
 
             _env.PushFrame();
 
@@ -380,7 +385,7 @@ namespace VD.Blaze.Generator
             _env.PopFrame();
 
             // Modify arg of jmp instruction 
-            _function.Instructions[jmpInstIdx] = new Instruction(Opcode.JMP, (byte)(_function.Instructions.Count - jmpInstIdx));
+            _function.Instructions[jmpInstIdx].Argument = (uint)(_function.Instructions.Count - jmpInstIdx);
         }
 
         public void VisitIf(Statement.IfStatement ifStmt)
@@ -396,12 +401,12 @@ namespace VD.Blaze.Generator
             if(ifStmt.Else is not null)
                 _function.Emit(Opcode.JMP, 0);
 
-            _function.Instructions[jmpIdx] = new Instruction(Opcode.JMPF, (byte)(_function.Instructions.Count - jmpIdx));
+            _function.Instructions[jmpIdx].Argument = (uint)(_function.Instructions.Count - jmpIdx);
 
             if(ifStmt.Else is not null)
             {
                 Evaluate(ifStmt.Else);
-                _function.Instructions[elseSkipIdx] = new Instruction(Opcode.JMP, (byte)(_function.Instructions.Count - elseSkipIdx));
+                _function.Instructions[elseSkipIdx].Argument = (uint)(_function.Instructions.Count - elseSkipIdx);
             }
         }
 
@@ -414,6 +419,7 @@ namespace VD.Blaze.Generator
             Function function = _module.CreateAnonymousFunction(funcValue.Args.Count);
             _function = function;
             _env = new FuncEnv(_env);
+            int funcval_line = _line;
 
             // Setup arg indicies
             for (int i = 0; i < funcValue.Args.Count; i++)
@@ -433,6 +439,9 @@ namespace VD.Blaze.Generator
                 _function = _functionStack.Pop();
 
             _env = _env.Parent;
+
+            _line = funcval_line;
+            _module.CurrentLine = funcval_line;
             _function.Emit(Opcode.LDFUNC, function);
         }
 
@@ -529,9 +538,9 @@ namespace VD.Blaze.Generator
             _function.Emit(Opcode.JMPF, 0);
 
             Evaluate(whileStmt.Body);
-            _function.Emit(Opcode.JMPB, (ushort)(_function.Instructions.Count - conditionIdx));
+            _function.Emit(Opcode.JMPB, _function.Instructions.Count - conditionIdx);
 
-            _function.Instructions[jmpIdx] = new Instruction(Opcode.JMPF, (byte)(_function.Instructions.Count - jmpIdx));
+            _function.Instructions[jmpIdx].Argument = (uint)(_function.Instructions.Count - jmpIdx);
         }
 
         public void VisitFor(Statement.ForStatement forStmt)
@@ -547,9 +556,9 @@ namespace VD.Blaze.Generator
 
             Evaluate(forStmt.Body);
             Evaluate(forStmt.Increment);
-            _function.Emit(Opcode.JMPB, (ushort)(_function.Instructions.Count - conditionIdx));
+            _function.Emit(Opcode.JMPB, _function.Instructions.Count - conditionIdx);
 
-            _function.Instructions[jmpIdx] = new Instruction(Opcode.JMPF, (byte)(_function.Instructions.Count - jmpIdx));
+            _function.Instructions[jmpIdx].Argument = (uint)(_function.Instructions.Count - jmpIdx);
             _env.PopFrame();
         }
 

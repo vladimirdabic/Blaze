@@ -23,6 +23,8 @@ namespace VD.Blaze.Interpreter
         internal List<Instruction> _instructions;
         internal Stack<int> _exceptionStack;
 
+        private int _line;
+
         public Interpreter()
         {
             Stack = new Stack<IValue>();
@@ -73,9 +75,12 @@ namespace VD.Blaze.Interpreter
             _contexts.Clear();
             _exceptionStack.Clear();
             _current = 0;
+            _line = 0;
 
             while(_current < _instructions.Count || _contexts.Count != 0)
             {
+                _line = (int)_instructions[_current].Line;
+
                 uint oparg = _instructions[_current].Argument;
                 int opargi = (int)oparg;
                 Opcode opcode = _instructions[_current].Opcode;
@@ -601,14 +606,14 @@ namespace VD.Blaze.Interpreter
                 {
                     _current = _exceptionStack.Pop();
                 }
-                else
+                else if(_contexts.Count != 0)
                 {
                     // Go back up one call
                     PopContext();
                 }
             } while (_contexts.Count != 0);
 
-            throw new InterpreterException(Stack.Pop(), this);
+            throw new InterpreterException(Stack.Pop(), this, (Module.Module.Name, _line));
         }
 
         internal void PushContext(List<Instruction> instructions = null)
@@ -634,11 +639,13 @@ namespace VD.Blaze.Interpreter
     {
         public IValue Value;
         public Interpreter Interpreter;
+        public (string filename, int line) Location;
 
-        public InterpreterException(IValue value, Interpreter interpreter)
+        public InterpreterException(IValue value, Interpreter interpreter, (string filename, int line) location)
         {
             Value = value;
             Interpreter = interpreter;
+            Location = location;
         }
     }
 

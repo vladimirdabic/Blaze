@@ -12,10 +12,16 @@ namespace VD.Blaze.Module
         public readonly List<Constant> Constants;
         public readonly List<Variable> Variables;
         public readonly List<Function> Functions;
+        public string Name;
+        public bool Debug;
+        public (int major, int minor) Version;
 
         private Function _staticFunction;
         private readonly Dictionary<string, Constant> _stringConstantMap;
         private readonly Dictionary<double, Constant> _numberConstantMap;
+
+        // Is used as the line number for instructions if Debug is enabled
+        public int CurrentLine;
 
         public Module()
         {
@@ -26,6 +32,8 @@ namespace VD.Blaze.Module
             _stringConstantMap = new Dictionary<string, Constant>();
             _numberConstantMap = new Dictionary<double, Constant>();
             _staticFunction = CreateAnonymousFunction(0);
+
+            CurrentLine = 0;
         }
 
         public Function CreateFunction(string name, int num_args, VariableType visibility = VariableType.PRIVATE)
@@ -102,6 +110,12 @@ namespace VD.Blaze.Module
 
             byte major = br.ReadByte();
             byte minor = br.ReadByte();
+            Version = (major, minor);
+
+            ushort len = br.ReadUInt16();
+            Name = new string(br.ReadChars(len));
+
+            Debug = br.ReadBoolean();
 
             ushort const_count = br.ReadUInt16();
             for(int i = 0;  i < const_count; i++)
@@ -154,6 +168,11 @@ namespace VD.Blaze.Module
             // 01 00  (major, minor) (BinaryWriter is little endian so 0x0001)
             bw.Write((ushort)0x0001);
 
+            bw.Write((ushort)Name.Length);
+            bw.Write(Name.ToCharArray());
+
+            bw.Write(Debug);
+
             // Constants
             bw.Write((ushort)Constants.Count);
             foreach(Constant constant in Constants)
@@ -172,7 +191,12 @@ namespace VD.Blaze.Module
 
         public void PrintToConsole()
         {
-            Console.WriteLine("== CONSTANTS ==");
+            Console.WriteLine("== INFORMATION ==");
+            Console.WriteLine($"Version {Version.major}.{Version.minor}");
+            Console.WriteLine($"Name '{Name}'");
+            Console.WriteLine($"Debug? {Debug}");
+
+            Console.WriteLine("\n== CONSTANTS ==");
             foreach (var constant in Constants)
             {
                 switch (constant.Type)
@@ -200,9 +224,19 @@ namespace VD.Blaze.Module
                 string name = func.Name is null ? "<anonymous>" : ((Constant.String)func.Name).Value;
 
                 Console.WriteLine($"{name} (# args: {func.NumOfArgs}, # locals: {func.NumOfLocals}, Varargs: {func.Varargs}, # instructions: {func.Instructions.Count})");
+
+                int line = 0;
                 foreach (var inst in func.Instructions)
                 {
-                    Console.WriteLine($"    {inst.Opcode} {inst.Argument}");
+                    if(inst.Line != line)
+                    {
+                        line = (int)inst.Line;
+                        Console.WriteLine($"{inst.Line}\t{inst.Opcode} {inst.Argument}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"\t{inst.Opcode} {inst.Argument}");
+                    }
                 }
             }
         }
