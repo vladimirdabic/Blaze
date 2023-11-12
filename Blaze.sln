@@ -5,7 +5,7 @@ VisualStudioVersion = 17.6.33801.468
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blaze Compiler", "Blaze Compiler\Blaze Compiler.csproj", "{14AC7519-C301-488F-BEE9-097CB7ED7CB2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blaze Interpreter", "Blaze Interpreter Rewrite\Blaze Interpreter.csproj", "{F8A37932-2B89-4C20-B12E-6B40F0B7589C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blaze Interpreter", "Blaze Interpreter\Blaze Interpreter.csproj", "{F8A37932-2B89-4C20-B12E-6B40F0B7589C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blaze Core", "Blaze Core\Blaze Core.csproj", "{FDB9851E-A3BD-4766-95F8-4687E086081E}"
 EndProject
