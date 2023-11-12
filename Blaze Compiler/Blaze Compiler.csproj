@@ -58,9 +58,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Blaze Interpreter Rewrite\Blaze Interpreter Rewrite.csproj">
+    <ProjectReference Include="..\Blaze Interpreter Rewrite\Blaze Interpreter.csproj">
       <Project>{f8a37932-2b89-4c20-b12e-6b40f0b7589c}</Project>
-      <Name>Blaze Interpreter Rewrite</Name>
+      <Name>Blaze Interpreter</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
