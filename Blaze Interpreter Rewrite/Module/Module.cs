@@ -1,5 +1,4 @@
-﻿using Blaze_Interpreter;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -203,7 +202,7 @@ namespace VD.Blaze.Module
                 Console.WriteLine($"{name} (# args: {func.NumOfArgs}, # locals: {func.NumOfLocals}, Varargs: {func.Varargs}, # instructions: {func.Instructions.Count})");
                 foreach (var inst in func.Instructions)
                 {
-                    Console.WriteLine($"    {inst.Id} {inst.Argument}");
+                    Console.WriteLine($"    {inst.Opcode} {inst.Argument}");
                 }
             }
         }

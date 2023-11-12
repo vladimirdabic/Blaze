@@ -4,12 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using VD.Blaze.Interpreter;
+using VD.Blaze.Interpreter.Environment;
 using VD.Blaze.Interpreter.Types;
 using VD.Blaze.Module;
 
-namespace Blaze_Interpreter
+namespace Blaze_Interpreter_Rewrite
 {
     internal class Program
     {
@@ -28,12 +28,12 @@ namespace Blaze_Interpreter
 
 
             Interpreter interpreter = new Interpreter();
-            ModuleEnvironment globalEnvironment = new ModuleEnvironment();
+            ModuleEnv globalEnvironment = new ModuleEnv();
             SetupGlobals(globalEnvironment);
-           
+
             // Load module file
-            ModuleEnvironment env = interpreter.LoadModule(module);
-            
+            ModuleEnv env = interpreter.LoadModule(module);
+
             // Set the parent to be the global environment
             env.Parent = globalEnvironment;
             globalEnvironment.Children.Add(env);
@@ -42,20 +42,12 @@ namespace Blaze_Interpreter
             Console.WriteLine("Running function main: ");
 
             var func = env.GetFunction("main");
-            IValue ret = interpreter.RunFunction(env, func, null);
-
-            // Debug stuff
-            //Console.WriteLine(ret.AsString());
-            /*Console.WriteLine("\nStack: ");
-            for(int i = 0; i < interpreter._stack.Count; ++i)
-            {
-                Console.WriteLine(interpreter._stack.Pop().AsString());
-            }*/
+            interpreter.RunFunction(env, func, null);
 
             Console.ReadKey();
         }
 
-        static void SetupGlobals(ModuleEnvironment env)
+        static void SetupGlobals(ModuleEnv env)
         {
             // Define print function
             var print_func = new BuiltinFunctionValue("print", (Interpreter itp, List<IValue> args) =>

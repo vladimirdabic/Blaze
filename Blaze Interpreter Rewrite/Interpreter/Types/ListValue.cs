@@ -96,8 +96,7 @@ namespace VD.Blaze.Interpreter.Types
             {
                 if (args.Count != 1)
                 {
-                    itp.Stack.Push(new StringValue("Expected number parameter for function list.pop"));
-                    throw new InterpreterInternalException();
+                    throw new InterpreterInternalException("Expected number parameter for function list.pop");
                 }
 
                 IValue arg = args[0];
@@ -109,8 +108,7 @@ namespace VD.Blaze.Interpreter.Types
                     // out of bounds
                     if (idx < 0 || idx > Values.Count - 1)
                     {
-                        itp.Stack.Push(new StringValue("Index out of bounds for function list.pop"));
-                        throw new InterpreterInternalException();
+                        throw new InterpreterInternalException("Index out of bounds for function list.pop");
                     }
 
                     IValue value = Values[idx];
@@ -118,9 +116,7 @@ namespace VD.Blaze.Interpreter.Types
                     return value;
                 }
 
-
-                itp.Stack.Push(new StringValue("Expected number parameter for function list.pop"));
-                throw new InterpreterInternalException();
+                throw new InterpreterInternalException("Expected number parameter for function list.pop");
             });
         }
 

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace VD.Blaze.Interpreter.Types
 {
-
     public class BuiltinFunctionValue : IValue, IValueCallable
     {
         public string Name;
@@ -28,11 +27,11 @@ namespace VD.Blaze.Interpreter.Types
             return $"<built-in function {Name}>";
         }
 
-        public IValue Call(Interpreter interpreter, List<IValue> args)
+        public void Call(Interpreter interpreter, List<IValue> args)
         {
             var res = Callback(interpreter, args);
 
-            return res is null ? Interpreter.NullInstance : res;
+            interpreter.Stack.Push(res is null ? Interpreter.NullInstance : res);
         }
 
         public IValue Copy()

@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 
 namespace VD.Blaze.Module
 {
-    public record struct Instruction(Opcode Id, byte Argument);
-
     public class Function
     {
         public int Index;
@@ -31,37 +29,34 @@ namespace VD.Blaze.Module
         public Function(Module module, Constant name, int numOfArgs) : this(module, name, numOfArgs, false) { }
         public Function(Module module) : this(module, null, 0, false) { }
 
-        public void Emit(Opcode instruction, byte argument)
+        public void Emit(Opcode instruction, uint argument)
         {
             Instructions.Add(new Instruction(instruction, argument));
         }
 
-        public void Emit(Opcode instruction, ushort argument)
+        public void Emit(Opcode instruction, int argument)
         {
-            if((argument & 0xff00) != 0)
-                Emit(Opcode.EXTENDED_ARG, (byte)(argument >> 8));
-
-            Emit(instruction, (byte)(argument & 0xff));
+            Emit(instruction, (uint)argument);
         }
 
         public void Emit(Opcode instruction, Constant constant)
         {
-            Instructions.Add(new Instruction(instruction, (byte)constant.Index));
+            Emit(instruction, constant.Index);
         }
 
         public void Emit(Opcode instruction, Variable mod_var)
         {
-            Instructions.Add(new Instruction(instruction, (byte)mod_var.Name.Index));
+            Emit(instruction, mod_var.Name.Index);
         }
 
         public void Emit(Opcode instruction, Function func)
         {
-            Instructions.Add(new Instruction(instruction, (byte)func.Index));
+            Emit(instruction, func.Index);
         }
 
         public void Emit(Opcode instruction, LocalVariable local)
         {
-            Instructions.Add(new Instruction(instruction, local.Index));
+            Emit(instruction, local.Index);
         }
 
         public void Emit(Opcode instruction)
@@ -89,7 +84,7 @@ namespace VD.Blaze.Module
             bw.Write(Varargs);
             bw.Write(NumOfLocals);
 
-            if (Instructions.Count == 0 || (Instructions[Instructions.Count - 1].Id != Opcode.RET))
+            if (Instructions.Count == 0 || (Instructions[Instructions.Count - 1].Opcode != Opcode.RET))
             {
                 Instructions.Add(new Instruction(Opcode.LDNULL, 0));
                 Instructions.Add(new Instruction(Opcode.RET, 0));
@@ -99,15 +94,28 @@ namespace VD.Blaze.Module
 
             foreach(var inst in Instructions)
             {
-                // each instruction is a 16 bit integer (2 bytes)
-                // first byte is the instruction, second is the argument
-                // 0x03 0x01 (LDARG, 1) = 0x0301
-                // ushort instruction = (ushort)((((byte)inst.inst) << 8) | inst.arg);
-                // bw.Write(instruction);
+                // Write out EXTENDED_ARG instructions
+                uint mask = 0xFF000000;
+                bool found = false;
 
-                // Big endian order, binarywriter only writes in little endian
-                bw.Write((byte)inst.Id);
-                bw.Write(inst.Argument);
+                for(int i = 0; i < 3; i++)
+                {
+                    mask >>= 8;
+                    byte ext_arg = (byte)((inst.Argument & mask) >> ((3 - i) * 8));
+
+                    if(ext_arg != 0)
+                        found = true;
+
+                    if (found)
+                    {
+                        bw.Write((byte)Opcode.EXTENDED_ARG);
+                        bw.Write(ext_arg);
+                    }
+                }
+
+
+                bw.Write((byte)inst.Opcode);
+                bw.Write((byte)(inst.Argument & 0xFF));
             }
 
         }
@@ -124,12 +132,17 @@ namespace VD.Blaze.Module
             int inst_count = br.ReadUInt16();
             for(int i = 0; i < inst_count; i++)
             {
-                // ushort inst = br.ReadUInt16();
-                // byte arg = (byte)(inst & 0xff);
-                // byte inst_id = (byte)(inst >> 8);
-                Opcode inst_id = (Opcode)br.ReadByte();
-                byte arg = br.ReadByte();
-                Instructions.Add(new Instruction(inst_id, arg));
+                Opcode opcode = (Opcode)br.ReadByte();
+                uint arg = br.ReadByte();
+
+                while (opcode == Opcode.EXTENDED_ARG)
+                {
+                    i++;
+                    opcode = (Opcode)br.ReadByte();
+                    arg = (arg << 8) | br.ReadByte();
+                }
+
+                Instructions.Add(new Instruction(opcode, arg));
             }
         }
     }
@@ -157,6 +170,18 @@ namespace VD.Blaze.Module
 
         LDLIST, LDOBJ, LDINDEX, STINDEX, LDPROP, STPROP,
         LDEVENT, ITER,
+    }
+
+    public class Instruction
+    {
+        public Opcode Opcode;
+        public uint Argument;
+
+        public Instruction(Opcode opcode, uint argument)
+        {
+            Opcode = opcode;
+            Argument = argument;
+        }
     }
 
     public class LocalVariable

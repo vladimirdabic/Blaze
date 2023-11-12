@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7C411BC8-9702-4A71-B98E-F7C2EDA47A96}</ProjectGuid>
+    <ProjectGuid>{F8A37932-2B89-4C20-B12E-6B40F0B7589C}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Blaze_Interpreter</RootNamespace>
-    <AssemblyName>Blaze Interpreter</AssemblyName>
+    <RootNamespace>Blaze_Interpreter_Rewrite</RootNamespace>
+    <AssemblyName>Blaze Interpreter Rewrite</AssemblyName>
     <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -44,11 +44,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Interpreter\FuncEnvironment.cs" />
+    <Compile Include="Interpreter\Environment\FuncEnv.cs" />
+    <Compile Include="Interpreter\Environment\BaseEnv.cs" />
+    <Compile Include="Interpreter\Environment\ModuleEnv.cs" />
+    <Compile Include="Interpreter\ExecutionContext.cs" />
     <Compile Include="Interpreter\Interpreter.cs" />
-    <Compile Include="Interpreter\ModuleEnvironment.cs" />
     <Compile Include="Interpreter\Types\BooleanValue.cs" />
     <Compile Include="Interpreter\Types\BuiltinFunctionValue.cs" />
+    <Compile Include="Interpreter\Types\DictionaryValue.cs" />
     <Compile Include="Interpreter\Types\FunctionValue.cs" />
     <Compile Include="Interpreter\Types\IteratorValue.cs" />
     <Compile Include="Interpreter\Types\IValue.cs" />
@@ -61,7 +64,6 @@
     <Compile Include="Interpreter\Types\NullValue.cs" />
     <Compile Include="Interpreter\Types\NumberValue.cs" />
     <Compile Include="Interpreter\Types\StringValue.cs" />
-    <Compile Include="Interpreter\Types\DictionaryValue.cs" />
     <Compile Include="Module\Constant.cs" />
     <Compile Include="Module\Function.cs" />
     <Compile Include="Module\Module.cs" />

@@ -4,62 +4,85 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VD.Blaze.Interpreter.Environment;
 using VD.Blaze.Interpreter.Types;
 using VD.Blaze.Module;
 
 namespace VD.Blaze.Interpreter
 {
-    public class FuncEnvironment
+    public class Interpreter
     {
-        public FuncEnvironment Parent;
-        public IValue[] Locals;
-        public List<IValue> Arguments;
-        public readonly Stack<int> ExceptionStack;
+        public BaseEnv Environment;
+        public ModuleEnv Module;
 
-        // State variables
-        private List<Instruction> _instructions;
-        private int _current;
-        private bool _running;
+        public Stack<IValue> Stack;
+        public static readonly NullValue NullInstance = new NullValue();
 
-        private readonly Interpreter _interpreter;
-        private readonly Stack<IValue> _stack;
-        private readonly ModuleEnvironment _moduleEnv;
+        internal Stack<ExecutionContext> _contexts;
+        internal int _current;
+        internal List<Instruction> _instructions;
+        internal Stack<int> _exceptionStack;
 
-
-        public FuncEnvironment(FuncEnvironment parent, Interpreter interpreter)
+        public Interpreter()
         {
-            Parent = parent;
-            Arguments = new List<IValue>();
-            ExceptionStack = new Stack<int>();
-            _instructions = null;
-            _interpreter = interpreter;
-            _stack = interpreter.Stack;
-            _moduleEnv = interpreter._moduleEnv;
+            Stack = new Stack<IValue>();
+            _contexts = new Stack<ExecutionContext>();
+            _exceptionStack = new Stack<int>();
         }
 
-        public IValue Evaluate(List<Instruction> instructions)
+        /// <summary>
+        /// Loads a Module and returns a ModuleEnvironment
+        /// </summary>
+        /// <param name="module">Module to load</param>
+        /// <param name="parent">Optional parent environment</param>
+        /// <returns></returns>
+        public ModuleEnv LoadModule(Module.Module module, ModuleEnv parent = null)
         {
+            ModuleEnv env = new ModuleEnv(module, parent);
+
+            // TODO: Error checking
+            FunctionValue staticFunc = new FunctionValue(env.Module.Functions[0], null);
+
+            RunFunction(env, staticFunc, null);
+            return env;
+        }
+
+        /// <summary>
+        /// Runs a function in a specific environment
+        /// </summary>
+        /// <param name="env">The environment</param>
+        /// <param name="function">The function</param>
+        /// <param name="args">List of arguments</param>
+        /// <returns>Function return value</returns>
+        public IValue RunFunction(ModuleEnv env, FunctionValue function, List<IValue> args)
+        {
+            Module = env;
+            Stack.Clear();
+
+            function.Call(this, args);
+
+            Execute();
+
+            IValue res = Stack.Pop();
+            return res;
+        }
+
+        private void Execute()
+        {
+            Stack.Clear();
+            _contexts.Clear();
+            _exceptionStack.Clear();
             _current = 0;
-            _running = true;
-            _instructions = instructions;
 
-            IValue result = Interpreter.NullInstance;
-
-            while (_running)
+            while(_current < _instructions.Count || _contexts.Count != 0)
             {
-                int oparg = _instructions[_current].Argument;
-                Opcode opcode = _instructions[_current].Id;
-
-                while (opcode == Opcode.EXTENDED_ARG)
-                {
-                    _current++;
-                    opcode = _instructions[_current].Id;
-                    oparg = (oparg << 8) | _instructions[_current].Argument;
-                }
+                uint oparg = _instructions[_current].Argument;
+                int opargi = (int)oparg;
+                Opcode opcode = _instructions[_current].Opcode;
 
                 _current++;
 
-                switch (opcode)
+                switch(opcode)
                 {
                     case Opcode.NOP:
                         break;
@@ -67,53 +90,48 @@ namespace VD.Blaze.Interpreter
                     case Opcode.POP:
                         {
                             for (int i = 0; i < oparg; ++i)
-                                _stack.Pop();
+                                Stack.Pop();
                         }
                         break;
 
                     case Opcode.LDNULL:
-                        _stack.Push(Interpreter.NullInstance);
+                        Stack.Push(NullInstance);
                         break;
 
                     case Opcode.LDARG:
-                        _stack.Push(Arguments[oparg]);
+                        // Guaranteed to be a FunctionEnvironment
+                        Stack.Push(((FuncEnv)Environment).Arguments[opargi]);
                         break;
 
                     case Opcode.LDCONST:
-                        _stack.Push(_moduleEnv.Constants[oparg]);
+                        Stack.Push(Module.Constants[opargi]);
                         break;
 
                     case Opcode.LDLOCAL:
                         {
                             // 00 00 UPLEVEL INDEX
-                            int idx = oparg & 0xff;
-                            int uplevel = oparg >> 8;
+                            uint idx = oparg & 0xff;
+                            uint uplevel = oparg >> 8;
 
-                            // Run up the FuncEnv list with uplevel
-                            var env = this;
-                            for(int i = 0; i < uplevel; ++i)
-                            {
-                                env = env.Parent;
-                            }
+                            IValue value = Environment.GetParent((int)uplevel).GetVariable((int)idx).GetValue();
 
-                            _stack.Push(env.Locals[idx]);
+                            Stack.Push(value);
                         }
                         break;
 
                     case Opcode.LDVAR:
                         {
-                            string name = ((StringValue)_moduleEnv.Constants[oparg]).Value;
-                            ModuleVariable variable = _moduleEnv.GetVariable(name);
+                            string name = ((StringValue)Module.Constants[opargi]).Value;
+                            IVariable variable = Module.GetVariable(name);
 
                             if (variable is null)
                             {
-                                // ERROR, Should throw up the exception stack
                                 Throw($"Referencing an undefined variable '{name}'");
                                 break;
                             }
                             else
                             {
-                                _stack.Push(variable.Value);
+                                Stack.Push(variable.GetValue());
                             }
 
                         }
@@ -122,10 +140,10 @@ namespace VD.Blaze.Interpreter
                     case Opcode.LDFUNC:
                         {
                             // This must be done so each function can have its own closure, otherwise they all share the same closure
-                            var func = _moduleEnv.GetFunction(oparg);
-                            func.Closure = this;
-                            _stack.Push(func);
-                        } 
+                            var func = Module.GetFunction(opargi);
+                            func.Closure = Environment;
+                            Stack.Push(func);
+                        }
                         break;
 
                     case Opcode.LDCLASS:
@@ -133,30 +151,25 @@ namespace VD.Blaze.Interpreter
                         break;
 
                     case Opcode.LDBOOL:
-                        _stack.Push(new BooleanValue(oparg == 1));
+                        Stack.Push(new BooleanValue(oparg == 1));
                         break;
 
                     case Opcode.STLOCAL:
                         {
                             // 00 00 UPLEVEL INDEX
-                            int idx = oparg & 0xff;
-                            int uplevel = oparg >> 8;
+                            uint idx = oparg & 0xff;
+                            uint uplevel = oparg >> 8;
 
-                            // Run up the FuncEnv list with uplevel
-                            var env = this;
-                            for (int i = 0; i < uplevel; ++i)
-                            {
-                                env = env.Parent;
-                            }
+                            IVariable variable = Environment.GetParent((int)uplevel).GetVariable((int)idx);
 
-                            env.Locals[idx] = _stack.Pop();
+                            variable.SetValue(Stack.Pop());
                         }
                         break;
 
                     case Opcode.STVAR:
                         {
-                            string name = ((StringValue)_moduleEnv.Constants[oparg]).Value;
-                            ModuleVariable variable = _moduleEnv.GetVariable(name);
+                            string name = ((StringValue)Module.Constants[opargi]).Value;
+                            IVariable variable = Module.GetVariable(name);
 
                             if (variable is null)
                             {
@@ -165,18 +178,18 @@ namespace VD.Blaze.Interpreter
                             }
                             else
                             {
-                                variable.Value = _stack.Pop();
+                                variable.SetValue(Stack.Pop());
                             }
                         }
                         break;
 
                     case Opcode.STARG:
-                        Arguments[oparg] = _stack.Pop();
+                        ((FuncEnv)Environment).Arguments[opargi] = Stack.Pop();
                         break;
 
                     case Opcode.CALL:
                         {
-                            IValue value = _stack.Pop();
+                            IValue value = Stack.Pop();
 
                             if (value is not IValueCallable)
                             {
@@ -187,31 +200,37 @@ namespace VD.Blaze.Interpreter
                             List<IValue> args = new List<IValue>();
 
                             for (int i = 0; i < oparg; ++i)
-                                args.Add(_stack.Pop());
+                                args.Add(Stack.Pop());
 
                             // Push result
 
                             try
                             {
-                                _stack.Push(((IValueCallable)value).Call(_interpreter, args));
+                                PushContext();
+                                ((IValueCallable)value).Call(this, args);
+
+                                if(value is not FunctionValue)
+                                    PopContext();
                             }
-                            catch(InterpreterInternalException)
+                            catch (InterpreterInternalException e)
                             {
-                                Throw();
+                                Throw(e.Message);
                             }
                         }
                         break;
 
                     case Opcode.RET:
-                        _running = false;
-                        result = _stack.Pop();
+                        if(_contexts.Count == 0)
+                            _current = _instructions.Count;
+                        else
+                            PopContext();
                         break;
 
                     // BINOPS
                     case Opcode.ADD:
                         {
-                            IValue right = _stack.Pop();
-                            IValue left = _stack.Pop();
+                            IValue right = Stack.Pop();
+                            IValue left = Stack.Pop();
 
                             if (left is not IValueBinOp)
                             {
@@ -227,14 +246,14 @@ namespace VD.Blaze.Interpreter
                                 break;
                             }
 
-                            _stack.Push(res);
+                            Stack.Push(res);
                         }
                         break;
 
                     case Opcode.SUB:
                         {
-                            IValue right = _stack.Pop();
-                            IValue left = _stack.Pop();
+                            IValue right = Stack.Pop();
+                            IValue left = Stack.Pop();
 
                             if (left is not IValueBinOp)
                             {
@@ -250,14 +269,14 @@ namespace VD.Blaze.Interpreter
                                 break;
                             }
 
-                            _stack.Push(res);
+                            Stack.Push(res);
                         }
                         break;
 
                     case Opcode.MUL:
                         {
-                            IValue right = _stack.Pop();
-                            IValue left = _stack.Pop();
+                            IValue right = Stack.Pop();
+                            IValue left = Stack.Pop();
 
                             if (left is not IValueBinOp)
                             {
@@ -273,14 +292,14 @@ namespace VD.Blaze.Interpreter
                                 break;
                             }
 
-                            _stack.Push(res);
+                            Stack.Push(res);
                         }
                         break;
 
                     case Opcode.DIV:
                         {
-                            IValue right = _stack.Pop();
-                            IValue left = _stack.Pop();
+                            IValue right = Stack.Pop();
+                            IValue left = Stack.Pop();
 
                             if (left is not IValueBinOp)
                             {
@@ -296,7 +315,7 @@ namespace VD.Blaze.Interpreter
                                 break;
                             }
 
-                            _stack.Push(res);
+                            Stack.Push(res);
                         }
                         break;
 
@@ -308,95 +327,95 @@ namespace VD.Blaze.Interpreter
 
                     case Opcode.CATCH:
                         {
-                            ExceptionStack.Push(_current + oparg - 1);
+                            _exceptionStack.Push(_current + opargi - 1);
                         }
                         break;
 
                     case Opcode.TRY_END:
-                        ExceptionStack.Pop();
+                        _exceptionStack.Pop();
                         break;
 
                     case Opcode.JMP:
-                        _current += oparg - 1;
+                        _current += opargi - 1;
                         break;
 
                     case Opcode.JMPB:
-                        _current -= oparg + 1;
+                        _current -= opargi + 1;
                         break;
 
                     case Opcode.JMPA:
-                        _current = oparg;
+                        _current = opargi;
                         break;
 
                     case Opcode.JMPT:
-                        if (_stack.Pop().AsBoolean())
-                            _current += oparg - 1;
-                        
+                        if (Stack.Pop().AsBoolean())
+                            _current += opargi - 1;
+
                         break;
 
                     case Opcode.JMPF:
-                        if (!_stack.Pop().AsBoolean())
-                            _current += oparg - 1;
+                        if (!Stack.Pop().AsBoolean())
+                            _current += opargi - 1;
 
                         break;
 
                     case Opcode.EQ:
                         {
-                            IValue right = _stack.Pop();
-                            IValue left = _stack.Pop();
+                            IValue right = Stack.Pop();
+                            IValue left = Stack.Pop();
 
-                            _stack.Push(new BooleanValue(left.Equals(right)));
-                        } 
+                            Stack.Push(new BooleanValue(left.Equals(right)));
+                        }
                         break;
 
                     case Opcode.AND:
                         {
-                            bool right =  _stack.Pop().AsBoolean();
-                            bool left = _stack.Pop().AsBoolean();
+                            bool right = Stack.Pop().AsBoolean();
+                            bool left = Stack.Pop().AsBoolean();
 
-                            _stack.Push(new BooleanValue(left && right));
+                            Stack.Push(new BooleanValue(left && right));
                         }
                         break;
 
                     case Opcode.OR:
                         {
-                            bool right = _stack.Pop().AsBoolean();
-                            bool left = _stack.Pop().AsBoolean();
+                            bool right = Stack.Pop().AsBoolean();
+                            bool left = Stack.Pop().AsBoolean();
 
-                            _stack.Push(new BooleanValue(left || right));
+                            Stack.Push(new BooleanValue(left || right));
                         }
                         break;
 
                     case Opcode.NOT:
-                        _stack.Push(new BooleanValue(!_stack.Pop().AsBoolean()));
+                        Stack.Push(new BooleanValue(!Stack.Pop().AsBoolean()));
                         break;
 
                     case Opcode.LT:
                         {
-                            IValue right = _stack.Pop();
-                            IValue left = _stack.Pop();
+                            IValue right = Stack.Pop();
+                            IValue left = Stack.Pop();
 
                             if (left is not IValueBinOp)
-                                _stack.Push(Interpreter.NullInstance);
+                                Stack.Push(NullInstance);
                             else
-                                _stack.Push(((IValueBinOp)left).LessThan(right));
+                                Stack.Push(((IValueBinOp)left).LessThan(right));
                         }
                         break;
 
                     case Opcode.LTE:
                         {
-                            IValue right = _stack.Pop();
-                            IValue left = _stack.Pop();
+                            IValue right = Stack.Pop();
+                            IValue left = Stack.Pop();
 
                             if (left is not IValueBinOp)
-                                _stack.Push(Interpreter.NullInstance);
+                                Stack.Push(NullInstance);
                             else
-                                _stack.Push(((IValueBinOp)left).LessThanEquals(right));
+                                Stack.Push(((IValueBinOp)left).LessThanEquals(right));
                         }
                         break;
 
                     case Opcode.DUP:
-                        _stack.Push(_stack.Peek());
+                        Stack.Push(Stack.Peek());
                         break;
 
                     case Opcode.VARARGS:
@@ -407,10 +426,10 @@ namespace VD.Blaze.Interpreter
                         {
                             ListValue listValue = new ListValue();
 
-                            for(int i = 0; i < oparg; ++i)
-                                listValue.Values.Add(_stack.Pop());
+                            for (int i = 0; i < oparg; ++i)
+                                listValue.Values.Add(Stack.Pop());
 
-                            _stack.Push(listValue);
+                            Stack.Push(listValue);
                         }
                         break;
 
@@ -420,20 +439,20 @@ namespace VD.Blaze.Interpreter
 
                             for (int i = 0; i < oparg; ++i)
                             {
-                                IValue key = _stack.Pop();
-                                IValue value = _stack.Pop();
+                                IValue key = Stack.Pop();
+                                IValue value = Stack.Pop();
 
                                 dictionaryValue.Entries[key] = value;
                             }
 
-                            _stack.Push(dictionaryValue);
+                            Stack.Push(dictionaryValue);
                         }
                         break;
 
                     case Opcode.LDINDEX:
                         {
-                            IValue obj = _stack.Pop();
-                            IValue idx = _stack.Pop();
+                            IValue obj = Stack.Pop();
+                            IValue idx = Stack.Pop();
 
                             if (obj is not IValueIndexable)
                             {
@@ -442,17 +461,17 @@ namespace VD.Blaze.Interpreter
                             }
 
                             IValueIndexable indexable = (IValueIndexable)obj;
-                            
+
                             try
                             {
-                                _stack.Push(indexable.GetAtIndex(idx));
-                            } 
-                            catch(IndexOutOfBounds)
+                                Stack.Push(indexable.GetAtIndex(idx));
+                            }
+                            catch (IndexOutOfBounds)
                             {
                                 Throw($"Tried indexing out of bounds");
                                 break;
                             }
-                            catch(IndexNotFound)
+                            catch (IndexNotFound)
                             {
                                 Throw($"Invalid index '{idx.AsString()}'");
                                 break;
@@ -462,9 +481,9 @@ namespace VD.Blaze.Interpreter
 
                     case Opcode.STINDEX:
                         {
-                            IValue obj = _stack.Pop();
-                            IValue idx = _stack.Pop();
-                            IValue new_value = _stack.Pop();
+                            IValue obj = Stack.Pop();
+                            IValue idx = Stack.Pop();
+                            IValue new_value = Stack.Pop();
 
                             if (obj is not IValueIndexable)
                             {
@@ -493,7 +512,7 @@ namespace VD.Blaze.Interpreter
 
                     case Opcode.LDPROP:
                         {
-                            IValue obj = _stack.Pop();
+                            IValue obj = Stack.Pop();
 
                             if (obj is not IValueProperties)
                             {
@@ -502,11 +521,11 @@ namespace VD.Blaze.Interpreter
                             }
 
                             IValueProperties indexable = (IValueProperties)obj;
-                            string propName = ((StringValue)_moduleEnv.Constants[oparg]).Value;
+                            string propName = ((StringValue)Module.Constants[opargi]).Value;
 
                             try
                             {
-                                _stack.Push(indexable.GetProperty(propName));
+                                Stack.Push(indexable.GetProperty(propName));
                             }
                             catch (PropertyNotFound)
                             {
@@ -518,8 +537,8 @@ namespace VD.Blaze.Interpreter
 
                     case Opcode.STPROP:
                         {
-                            IValue obj = _stack.Pop();
-                            IValue new_value = _stack.Pop();
+                            IValue obj = Stack.Pop();
+                            IValue new_value = Stack.Pop();
 
                             if (obj is not IValueProperties)
                             {
@@ -528,7 +547,7 @@ namespace VD.Blaze.Interpreter
                             }
 
                             IValueProperties indexable = (IValueProperties)obj;
-                            string propName = ((StringValue)_moduleEnv.Constants[oparg]).Value;
+                            string propName = ((StringValue)Module.Constants[opargi]).Value;
 
                             try
                             {
@@ -547,15 +566,15 @@ namespace VD.Blaze.Interpreter
 
                     case Opcode.ITER:
                         {
-                            IValue value = _stack.Pop();
+                            IValue value = Stack.Pop();
 
-                            if(value is not IValueIterable)
+                            if (value is not IValueIterable)
                             {
                                 Throw($"Object of type '{value.GetName()}' is not iterable");
                             }
 
                             IteratorValue iterator = ((IValueIterable)value).GetIterator();
-                            _stack.Push(iterator);
+                            Stack.Push(iterator);
                         }
                         break;
 
@@ -563,27 +582,67 @@ namespace VD.Blaze.Interpreter
                         throw new NotImplementedException();
                 }
             }
+        }
 
-            return result;
+        private void Throw(string msg)
+        {
+            // TODO: Probably change to an exception object
+            Stack.Push(new StringValue(msg));
+            Throw();
         }
 
         private void Throw()
         {
-            if (ExceptionStack.Count != 0)
+            do
             {
-                _current = ExceptionStack.Pop();
-            }
-            else
-            {
-                throw new InterpreterInternalException();
-            }
+                if (_exceptionStack.Count != 0)
+                {
+                    _current = _exceptionStack.Pop();
+                }
+                else
+                {
+                    // Go back up one call
+                    PopContext();
+                }
+            } while (_contexts.Count != 0);
+
+            throw new InterpreterException(Stack.Pop(), this);
         }
 
-        private void Throw(string message)
+        internal void PushContext(List<Instruction> instructions = null)
         {
-            // TODO: Change to a general exception object in the fututre
-            _stack.Push(new StringValue(message));
-            Throw();
+            _contexts.Push(new ExecutionContext(_current, _instructions, Environment, _exceptionStack));
+            _current = 0;
+            _instructions = instructions;
+            _exceptionStack = new Stack<int>();
+        }
+
+        internal void PopContext()
+        {
+            var ctx = _contexts.Pop();
+            _current = ctx.Current;
+            _instructions = ctx.Instructions;
+            Environment = ctx.Environment;
+            _exceptionStack = ctx.ExceptionStack;
+        }
+    }
+
+    public class InterpreterException : Exception
+    {
+        public IValue Value;
+        public Interpreter Interpreter;
+
+        public InterpreterException(IValue value, Interpreter interpreter)
+        {
+            Value = value;
+            Interpreter = interpreter;
+        }
+    }
+
+    public class InterpreterInternalException : Exception
+    {
+        public InterpreterInternalException(string msg) : base(msg)
+        {
         }
     }
 }

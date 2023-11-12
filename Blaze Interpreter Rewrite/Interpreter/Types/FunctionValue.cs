@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VD.Blaze.Interpreter.Environment;
 using VD.Blaze.Module;
 
 namespace VD.Blaze.Interpreter.Types
@@ -14,9 +15,9 @@ namespace VD.Blaze.Interpreter.Types
         public bool Varargs;
         public int NumOfLocals { get; private set; }
         public List<Instruction> Instructions;
-        public FuncEnvironment Closure;
+        public BaseEnv Closure;
 
-        public FunctionValue(Function func, FuncEnvironment env)
+        public FunctionValue(Function func, BaseEnv env)
         {
             NumOfArgs = func.NumOfArgs;
             Varargs = func.Varargs;
@@ -44,18 +45,21 @@ namespace VD.Blaze.Interpreter.Types
             return "function";
         }
 
-        public IValue Call(Interpreter interpreter, List<IValue> args)
+        public void Call(Interpreter interpreter, List<IValue> args)
         {
-            FuncEnvironment env = new FuncEnvironment(Closure, interpreter);
-
-            env.Arguments = args ?? new List<IValue>();
-            env.Locals = new IValue[NumOfLocals];
+            var env = new FuncEnv(Closure)
+            {
+                Arguments = args ?? new List<IValue>(),
+                Locals = new IValue[NumOfLocals]
+            };
 
             for (int i = 0; i < NumOfLocals; i++)
                 env.Locals[i] = Interpreter.NullInstance;
 
-            IValue ret = env.Evaluate(Instructions);
-            return ret;
+            // Setup the context
+            // interpreter.PushContext(Instructions);
+            interpreter._instructions = Instructions;
+            interpreter.Environment = env;
         }
 
         public string AsString()

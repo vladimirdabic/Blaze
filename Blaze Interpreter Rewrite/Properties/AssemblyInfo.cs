@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Blaze Interpreter")]
+[assembly: AssemblyTitle("Blaze Interpreter Rewrite")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Blaze Interpreter")]
+[assembly: AssemblyProduct("Blaze Interpreter Rewrite")]
 [assembly: AssemblyCopyright("Copyright ©  2023")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("7c411bc8-9702-4a71-b98e-f7c2eda47a96")]
+[assembly: Guid("f8a37932-2b89-4c20-b12e-6b40f0b7589c")]
 
 // Version information for an assembly consists of the following four values:
 //

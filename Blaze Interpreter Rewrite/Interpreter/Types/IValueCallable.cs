@@ -8,6 +8,6 @@ namespace VD.Blaze.Interpreter.Types
 {
     public interface IValueCallable
     {
-        IValue Call(Interpreter interpreter, List<IValue> args);
+        void Call(Interpreter interpreter, List<IValue> args);
     }
 }

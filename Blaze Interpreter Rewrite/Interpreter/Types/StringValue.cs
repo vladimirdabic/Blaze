@@ -146,8 +146,7 @@ namespace VD.Blaze.Interpreter.Types
             {
                 if (args.Count != 1)
                 {
-                    itp.Stack.Push(new StringValue("Expected delimiter parameter for function string.split"));
-                    throw new InterpreterInternalException();
+                    throw new InterpreterInternalException("Expected delimiter parameter for function string.split");
                 }
 
                 IValue arg = args[0];
@@ -164,9 +163,7 @@ namespace VD.Blaze.Interpreter.Types
                     return res;
                 }
 
-
-                itp.Stack.Push(new StringValue("Expected string parameter for delimiter in function string.split"));
-                throw new InterpreterInternalException();
+                throw new InterpreterInternalException("Expected string parameter for delimiter in function string.split");
             });
         }
 
