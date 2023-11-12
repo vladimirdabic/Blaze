@@ -115,10 +115,10 @@ namespace VD.Blaze.Parser
         {
             public TokenLocation Location;
             public Expression Event;
-            public List<(string name, Expression value)> Args;
-            public List<Statement> Body;
+            public List<(string name, List<Expression> values)> Args;
+            public Statement Body;
 
-            public TopEventDef(TokenLocation location, Expression _event, List<(string name, Expression value)> args, List<Statement> body)
+            public TopEventDef(TokenLocation location, Expression _event, List<(string name, List<Expression> value)> args, Statement body)
             {
                 Event = _event;
                 Location = location;

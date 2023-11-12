@@ -266,6 +266,52 @@ namespace VD.Blaze.Parser
                 return new Statement.Throw(value);
             }
 
+            if (Match(TokenType.EVENT))
+            {
+                Token loc = Prev();
+                Expression event_expr = ParseIndex();
+                var event_args = new List<(string, List<Expression>)>();
+
+                if (Match(TokenType.OPEN_PAREN))
+                {
+                    if (!Check(TokenType.CLOSE_PAREN))
+                    {
+                        do
+                        {
+                            Token pos = Peek();
+                            List<Expression> exprarg = null;
+                            string arg_name = Match(TokenType.IDENTIFIER) ? (string)Prev().Value : null;
+
+                            if(Match(TokenType.OPEN_SQUARE))
+                            {
+                                exprarg = new List<Expression>();
+                                
+                                while (true)
+                                {
+                                    exprarg.Add(ParseExpression());
+                                    if (Check(TokenType.CLOSE_SQUARE) || !Available()) break;
+                                    Consume(TokenType.COMMA, "Expected ',' after event parameter value");
+                                }
+
+                                Consume(TokenType.CLOSE_SQUARE, "Expected ']' after event parameter values");
+                            }
+
+                            if(arg_name is null && exprarg is null)
+                                throw new ParserException(pos.Location.Source, pos.Location.Line, "Event argument must be a name or a list of allowed values");
+
+                            event_args.Add((arg_name, exprarg));
+
+                        } while (Match(TokenType.COMMA));
+                    }
+
+                    Consume(TokenType.CLOSE_PAREN, "Expected ')' after func arguments");
+                }
+
+                Statement body = ParseStatement();
+
+                return new Statement.TopEventDef(loc.Location, event_expr, event_args, body);
+            }
+
             Expression expr = ParseExpression();
 
             // Only allow Assignments and Function Calls

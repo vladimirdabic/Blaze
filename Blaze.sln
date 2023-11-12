@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blaze Compiler", "Blaze Com
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blaze Interpreter", "Blaze Interpreter Rewrite\Blaze Interpreter.csproj", "{F8A37932-2B89-4C20-B12E-6B40F0B7589C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blaze Core", "Blaze Core\Blaze Core.csproj", "{FDB9851E-A3BD-4766-95F8-4687E086081E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{F8A37932-2B89-4C20-B12E-6B40F0B7589C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F8A37932-2B89-4C20-B12E-6B40F0B7589C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F8A37932-2B89-4C20-B12E-6B40F0B7589C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDB9851E-A3BD-4766-95F8-4687E086081E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDB9851E-A3BD-4766-95F8-4687E086081E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDB9851E-A3BD-4766-95F8-4687E086081E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDB9851E-A3BD-4766-95F8-4687E086081E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
