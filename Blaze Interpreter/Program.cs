@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Blaze_Interpreter.ArgParse;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,67 +10,106 @@ using VD.Blaze.Interpreter.Environment;
 using VD.Blaze.Interpreter.Types;
 using VD.Blaze.Module;
 
-namespace Blaze_Interpreter_Rewrite
+
+namespace Blaze_Interpreter
 {
     internal class Program
     {
         static void Main(string[] args)
         {
-            Module module = new Module();
+            var argIt = new ArgumentIterator(args);
 
-            MemoryStream stream = new MemoryStream(File.ReadAllBytes("test.blzm"));
-            BinaryReader reader = new BinaryReader(stream);
+            string moduleFileName = null;
+            bool dump = false;
 
-            module.FromBinary(reader);
-            module.PrintToConsole();
+            while(argIt.Available())
+            {
+                var arg = argIt.Next();
+                switch(arg)
+                {
+                    case "-m":
+                        moduleFileName = argIt.Next();
 
-            Console.Write('\n');
-            Console.ReadKey();
+                        if(moduleFileName is null)
+                        {
+                            Console.WriteLine($"Expected module file name after '-m'");
+                            return;
+                        }
 
+                        break;
 
-            Interpreter interpreter = new Interpreter();
-            ModuleEnv globalEnvironment = new ModuleEnv();
-            SetupGlobals(globalEnvironment);
+                    case "-d":
+                        dump = true;
+                        break;
 
-            // Load module file
-            ModuleEnv env = interpreter.LoadModule(module);
+                    default:
+                        Console.WriteLine($"Unknown argument '{arg}'");
+                        return;
+                }
+            }
 
-            // Set the parent to be the global environment
-            env.SetParent(globalEnvironment);
+            if(moduleFileName is null)
+            {
+                Console.WriteLine($"Usage: {AppDomain.CurrentDomain.FriendlyName} [options]");
+                Console.WriteLine($"Options:");
+                Console.WriteLine($"    -m [file]       Module file to execute");
+                Console.WriteLine($"    -d              Print the contents of the module file");
+                return;
+            }
 
-            // Run main
-            Console.WriteLine("Running function main: ");
+            if (!File.Exists(moduleFileName))
+            {
+                Console.WriteLine("Module file not found");
+                return;
+            }
 
-            var func = env.GetFunction("main");
-           
             try
             {
-                interpreter.RunFunction(env, func, null);
+                Module module = new Module();
+
+                MemoryStream stream = new MemoryStream(File.ReadAllBytes(moduleFileName));
+                BinaryReader reader = new BinaryReader(stream);
+
+                module.FromBinary(reader);
+
+                if (dump)
+                {
+                    module.PrintToConsole();
+                    return;
+                }
+
+                Interpreter interpreter = new Interpreter();
+                ModuleEnv globalEnvironment = new ModuleEnv();
+                Utils.CreateLibraries(globalEnvironment);
+
+                // Load module file
+                ModuleEnv env = interpreter.LoadModule(module);
+
+                // Set the parent to be the global environment
+                env.SetParent(globalEnvironment);
+
+                // Run main
+                // Console.WriteLine("Running function main: ");
+
+                var func = env.GetFunction("main");
+
+                try
+                {
+                    interpreter.RunFunction(env, func, null);
+                }
+                catch (InterpreterException e)
+                {
+                    if (e.Location.line == 0)
+                        Console.WriteLine($"[{e.Location.filename}] {e.Value.AsString()}");
+                    else
+                        Console.WriteLine($"[{e.Location.filename}:{e.Location.line}] {e.Value.AsString()}");
+                }
+
             }
-            catch(InterpreterException e)
+            catch (Exception e)
             {
-                if(e.Location.line == 0)
-                    Console.WriteLine($"[{e.Location.filename}] {e.Value.AsString()}");
-                else
-                    Console.WriteLine($"[{e.Location.filename}:{e.Location.line}] {e.Value.AsString()}");
+                Console.WriteLine(e.Message);
             }
-
-            Console.ReadKey();
-        }
-
-        static void SetupGlobals(ModuleEnv env)
-        {
-            // Define print function
-            var print_func = new BuiltinFunctionValue("print", (Interpreter itp, List<IValue> args) =>
-            {
-                foreach (var arg in args)
-                    Console.Write($"{arg.AsString()}");
-
-                Console.Write('\n');
-                return null;
-            });
-
-            env.DefineVariable("print", VariableType.PUBLIC, print_func);
         }
     }
 }

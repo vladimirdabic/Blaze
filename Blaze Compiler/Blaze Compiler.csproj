@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ArgParse\ArgumentIterator.cs" />
     <Compile Include="Generator\Environment\BaseEnv.cs" />
     <Compile Include="Generator\Environment\ClassEnv.cs" />
     <Compile Include="Generator\Environment\FuncEnv.cs" />
