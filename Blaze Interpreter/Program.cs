@@ -63,26 +63,26 @@ namespace Blaze_Interpreter
                 return;
             }
 
+            Module module = new Module();
+
+            MemoryStream stream = new MemoryStream(File.ReadAllBytes(moduleFileName));
+            BinaryReader reader = new BinaryReader(stream);
+
+            module.FromBinary(reader);
+
+            if (dump)
+            {
+                module.PrintToConsole();
+                return;
+            }
+
+            Interpreter interpreter = new Interpreter();
+            ModuleEnv globalEnvironment = new ModuleEnv();
+            Utils.CreateLibraries(globalEnvironment);
+
+            // Load module file
             try
             {
-                Module module = new Module();
-
-                MemoryStream stream = new MemoryStream(File.ReadAllBytes(moduleFileName));
-                BinaryReader reader = new BinaryReader(stream);
-
-                module.FromBinary(reader);
-
-                if (dump)
-                {
-                    module.PrintToConsole();
-                    return;
-                }
-
-                Interpreter interpreter = new Interpreter();
-                ModuleEnv globalEnvironment = new ModuleEnv();
-                Utils.CreateLibraries(globalEnvironment);
-
-                // Load module file
                 ModuleEnv env = interpreter.LoadModule(module);
 
                 // Set the parent to be the global environment
@@ -93,22 +93,14 @@ namespace Blaze_Interpreter
 
                 var func = env.GetFunction("main");
 
-                try
-                {
-                    interpreter.RunFunction(env, func, null);
-                }
-                catch (InterpreterException e)
-                {
-                    if (e.Location.line == 0)
-                        Console.WriteLine($"[{e.Location.filename}] {e.Value.AsString()}");
-                    else
-                        Console.WriteLine($"[{e.Location.filename}:{e.Location.line}] {e.Value.AsString()}");
-                }
-
+                interpreter.RunFunction(env, func, null);
             }
-            catch (Exception e)
+            catch (InterpreterException e)
             {
-                Console.WriteLine(e.Message);
+                if (e.Location.line == 0)
+                    Console.WriteLine($"[{e.Location.filename}] {e.Value.AsString()}");
+                else
+                    Console.WriteLine($"[{e.Location.filename}:{e.Location.line}] {e.Value.AsString()}");
             }
         }
     }

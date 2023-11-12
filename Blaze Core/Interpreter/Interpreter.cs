@@ -646,6 +646,8 @@ namespace VD.Blaze.Interpreter
 
         private void Throw()
         {
+            string module_name = Module.Module.Name;
+
             do
             {
                 if (_exceptionStack.Count != 0)
@@ -659,7 +661,7 @@ namespace VD.Blaze.Interpreter
                 }
             } while (_contexts.Count != 0);
 
-            throw new InterpreterException(Stack.Pop(), this, (Module.Module.Name, _line));
+            throw new InterpreterException(Stack.Pop(), this, (module_name, _line));
         }
 
         internal void PushContext(List<Instruction> instructions = null)

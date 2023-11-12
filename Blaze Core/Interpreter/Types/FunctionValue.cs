@@ -51,9 +51,12 @@ namespace VD.Blaze.Interpreter.Types
         {
             var env = new FuncEnv(Closure)
             {
-                Arguments = args ?? new List<IValue>(),
+                Arguments = args ?? Enumerable.Repeat<IValue>(Interpreter.NullInstance, NumOfArgs).ToList(),
                 Locals = new IValue[NumOfLocals]
             };
+
+            if (args is not null && args.Count == 0)
+                env.Arguments = Enumerable.Repeat<IValue>(Interpreter.NullInstance, NumOfArgs).ToList();
 
             for (int i = 0; i < NumOfLocals; i++)
                 env.Locals[i] = Interpreter.NullInstance;

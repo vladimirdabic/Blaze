@@ -154,35 +154,24 @@ namespace VD.Blaze.Interpreter.Environment
             {
                 Variable variable = Variables[name];
 
-                if (variable.Visibility != VariableType.PUBLIC)
-                {
-                    // Check children for same variable
-                    foreach (var child in Children)
-                    {
-                        if (child != callerChild)
-                        {
-                            Variable value = child.GetPublicVariable(name);
-                            if (value is not null) return value;
-                        }
-                    }
-
-                    // Not public so it can't be accessed
-                    return null;
-                }
-
-                return variable;
+                if (variable.Visibility == VariableType.PUBLIC)
+                    return variable;
             }
-            else
+
+            // Check children if not found
+            foreach (var child in Children)
             {
-                // Check children if not found
-                foreach (var child in Children)
+                if (child != callerChild)
                 {
-                    if (child != callerChild)
-                    {
-                        Variable value = child.GetPublicVariable(name);
-                        if (value is not null) return value;
-                    }
+                    Variable value = child.GetPublicVariable(name);
+                    if (value is not null) return value;
                 }
+            }
+
+            if (Parent is not null)
+            {
+                Variable value = ((ModuleEnv)Parent).GetPublicVariable(name, this);
+                if (value is not null) return value;
             }
 
             // Not defined

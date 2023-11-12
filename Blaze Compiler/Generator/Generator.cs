@@ -11,6 +11,7 @@ using VD.Blaze.Generator.Environment;
 using static VD.Blaze.Generator.Environment.BaseEnv;
 using System.Xml.Linq;
 
+
 namespace VD.Blaze.Generator
 {
     public class Generator : Expression.IVisitor, Statement.IVisitor
@@ -146,7 +147,11 @@ namespace VD.Blaze.Generator
             if (visibility != VariableType.EXTERNAL)
             {
                 if (topVarDef.Value is not null)
+                {
+                    EnterFunction(staticFunc);
                     Evaluate(topVarDef.Value);
+                    LeaveFunction();
+                }
                 else
                     staticFunc.Emit(Opcode.LDNULL);
                 
@@ -621,7 +626,7 @@ namespace VD.Blaze.Generator
         {
             // Setup class and local env
             string class_name = (string)topClassDef.Name.Value;
-            Class cls = _module.CreateClass(class_name);
+            Class cls = _module.CreateClass(class_name, GetVisibility(topClassDef.Visibility));
 
             Variable variable = _module.Variables[_module.Variables.Count - 1];
             _variables[class_name] = variable;
