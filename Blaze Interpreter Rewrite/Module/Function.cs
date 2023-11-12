@@ -11,6 +11,7 @@ namespace VD.Blaze.Module
     {
         public int Index;
         public Module ParentModule;
+
         public Constant Name;
         public int NumOfArgs;
         public bool Varargs;
@@ -29,39 +30,46 @@ namespace VD.Blaze.Module
         public Function(Module module, Constant name, int numOfArgs) : this(module, name, numOfArgs, false) { }
         public Function(Module module) : this(module, null, 0, false) { }
 
-        public void Emit(Opcode instruction, uint argument)
+        public Instruction Emit(Opcode instruction, uint argument)
         {
-            Instructions.Add(new Instruction(instruction, argument, (uint)ParentModule.CurrentLine));
+            var inst = new Instruction(instruction, argument, (uint)ParentModule.CurrentLine);
+            Instructions.Add(inst);
+            return inst;
         }
 
-        public void Emit(Opcode instruction, int argument)
+        public Instruction Emit(Opcode instruction, int argument)
         {
-            Emit(instruction, (uint)argument);
+            return Emit(instruction, (uint)argument);
         }
 
-        public void Emit(Opcode instruction, Constant constant)
+        public Instruction Emit(Opcode instruction, Constant constant)
         {
-            Emit(instruction, constant.Index);
+            return Emit(instruction, constant.Index);
         }
 
-        public void Emit(Opcode instruction, Variable mod_var)
+        public Instruction Emit(Opcode instruction, Variable mod_var)
         {
-            Emit(instruction, mod_var.Name.Index);
+            return Emit(instruction, mod_var.Name.Index);
         }
 
-        public void Emit(Opcode instruction, Function func)
+        public Instruction Emit(Opcode instruction, Function func)
         {
-            Emit(instruction, func.Index);
+            return Emit(instruction, func.Index);
         }
 
-        public void Emit(Opcode instruction, LocalVariable local)
+        public Instruction Emit(Opcode instruction, Class cls)
         {
-            Emit(instruction, local.Index);
+            return Emit(instruction, cls.Index);
         }
 
-        public void Emit(Opcode instruction)
+        public Instruction Emit(Opcode instruction, LocalVariable local)
         {
-            Emit(instruction, 0);
+            return Emit(instruction, local.Index);
+        }
+
+        public Instruction Emit(Opcode instruction)
+        {
+            return Emit(instruction, 0);
         }
 
         /*
@@ -176,7 +184,7 @@ namespace VD.Blaze.Module
         DUP, VARARGS,
 
         LDLIST, LDOBJ, LDINDEX, STINDEX, LDPROP, STPROP,
-        LDEVENT, ITER,
+        LDEVENT, ITER, NEW,
     }
 
     public class Instruction

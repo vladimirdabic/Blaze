@@ -15,14 +15,16 @@ namespace VD.Blaze.Interpreter
         public ModuleEnv Module;
         public BaseEnv Environment;
         public Stack<int> ExceptionStack;
+        public bool InConstructor;
 
-        public ExecutionContext(int current, List<Instruction> instructions, BaseEnv environment, ModuleEnv module, Stack<int> exceptionStack)
+        public ExecutionContext(int current, List<Instruction> instructions, BaseEnv environment, ModuleEnv module, Stack<int> exceptionStack, bool inConst)
         {
             Current = current;
             Instructions = instructions;
             Environment = environment;
             ExceptionStack = exceptionStack;
             Module = module;
+            InConstructor = inConst;
         }
     }
 }

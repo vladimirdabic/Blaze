@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace VD.Blaze.Module
 {
@@ -12,6 +13,7 @@ namespace VD.Blaze.Module
         public readonly List<Constant> Constants;
         public readonly List<Variable> Variables;
         public readonly List<Function> Functions;
+        public readonly List<Class> Classes;
         public string Name;
         public bool Debug;
         public (int major, int minor) Version;
@@ -28,6 +30,7 @@ namespace VD.Blaze.Module
             Constants = new List<Constant>();
             Variables = new List<Variable>();
             Functions = new List<Function>();
+            Classes = new List<Class>();
 
             _stringConstantMap = new Dictionary<string, Constant>();
             _numberConstantMap = new Dictionary<double, Constant>();
@@ -46,7 +49,7 @@ namespace VD.Blaze.Module
             Variable func_var = new Variable(this, visibility, name_const);
             Variables.Add(func_var);
 
-            // Initialize in the static function so parent modules can access it
+            // Initialize in the static function so other modules can access it
             _staticFunction.Emit(Opcode.LDFUNC, func);
             _staticFunction.Emit(Opcode.STVAR, func_var);
 
@@ -59,6 +62,31 @@ namespace VD.Blaze.Module
             func.Index = Functions.Count;
             Functions.Add(func);
             return func;
+        }
+
+        public Class CreateClass(string name, VariableType visibility = VariableType.PRIVATE)
+        {
+            Constant name_const = AddConstant(new Constant.String(name));
+            Class cls = new Class(this, name_const);
+            cls.Index = Classes.Count;
+            Classes.Add(cls);
+
+            Variable cls_var = new Variable(this, visibility, name_const);
+            Variables.Add(cls_var);
+
+            // Initialize in the static function so other modules can access it
+            _staticFunction.Emit(Opcode.LDCLASS, cls);
+            _staticFunction.Emit(Opcode.STVAR, cls_var);
+
+            return cls;
+        }
+
+        public Class CreateAnonymousClass()
+        {
+            Class cls = new Class(this, null);
+            cls.Index = Classes.Count;
+            Classes.Add(cls);
+            return cls;
         }
 
         public Variable DefineVariable(string name, VariableType type)
@@ -121,9 +149,9 @@ namespace VD.Blaze.Module
             for(int i = 0;  i < const_count; i++)
             {
                 ConstantType type = (ConstantType)br.ReadByte();
-                Constant constant = null;
-                
-                switch(type)
+                Constant constant;
+
+                switch (type)
                 {
                     case ConstantType.NUMBER:
                         constant = new Constant.Number(0);
@@ -152,8 +180,18 @@ namespace VD.Blaze.Module
             for(int i = 0; i < func_count; i++)
             {
                 Function func = new Function(this);
+                func.Index = i;
                 func.FromBinary(br);
                 Functions.Add(func);
+            }
+
+            ushort class_count = br.ReadUInt16();
+            for (int i = 0; i < class_count; i++)
+            {
+                Class cls = new Class(this, null);
+                cls.Index = i;
+                cls.FromBinary(br);
+                Classes.Add(cls);
             }
 
             _staticFunction = Functions[0];
@@ -187,6 +225,11 @@ namespace VD.Blaze.Module
             bw.Write((ushort)Functions.Count);
             foreach(Function function in Functions)
                 function.ToBinary(bw);
+
+            // Classes
+            bw.Write((ushort)Classes.Count);
+            foreach (Class cls in Classes)
+                cls.ToBinary(bw);
         }
 
         public void PrintToConsole()
@@ -237,6 +280,18 @@ namespace VD.Blaze.Module
                     {
                         Console.WriteLine($"\t{inst.Opcode} {inst.Argument}");
                     }
+                }
+            }
+
+            Console.WriteLine("\n == CLASSES ==");
+            foreach(var cls in Classes)
+            {
+                string name = cls.Name is null ? "<anonymous>" : ((Constant.String)cls.Name).Value;
+
+                Console.WriteLine($"{name} (# members: {cls.Members.Count}, constructor idx: {cls.Constructor.Index})");
+                foreach(var member in cls.Members)
+                {
+                    Console.WriteLine($"\tvar {((Constant.String)member).Value}");
                 }
             }
         }

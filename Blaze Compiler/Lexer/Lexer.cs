@@ -35,6 +35,7 @@ namespace VD.Blaze.Lexer
             { "throw", TokenType.THROW },
             { "static", TokenType.STATIC },
             { "event", TokenType.EVENT },
+            { "new", TokenType.NEW },
         };
 
 

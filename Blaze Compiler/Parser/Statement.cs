@@ -14,20 +14,22 @@ namespace VD.Blaze.Parser
 
         public interface IVisitor
         {
-            void VisitExprStmt(ExprStmt exprStmt);
-            void VisitDefinitions(Definitions definitions);
-            void VisitTopVarDef(TopVariableDef topVarDef);
-            void VisitTopFuncDef(TopFuncDef topFuncDef);
-            void VisitReturn(Return returnStmt);
-            void VisitLocalVarDef(LocalVariableDef localVarDef);
-            void VisitBlock(Block block);
-            void VisitTryCatch(TryCatch tryCatch);
-            void VisitThrow(Throw throwStmt);
-            void VisitIf(IfStatement ifStmt);
-            void VisitStaticStmt(StaticStmt staticStmt);
-            void VisitTopEventDef(TopEventDef topEventDef);
-            void VisitWhile(WhileStatement whileStmt);
-            void VisitFor(ForStatement forStmt);
+            void Visit(ExprStmt exprStmt);
+            void Visit(Definitions definitions);
+            void Visit(TopVariableDef topVarDef);
+            void Visit(TopFuncDef topFuncDef);
+            void Visit(Return returnStmt);
+            void Visit(LocalVariableDef localVarDef);
+            void Visit(Block block);
+            void Visit(TryCatch tryCatch);
+            void Visit(Throw throwStmt);
+            void Visit(IfStatement ifStmt);
+            void Visit(StaticStmt staticStmt);
+            void Visit(TopEventDef topEventDef);
+            void Visit(WhileStatement whileStmt);
+            void Visit(ForStatement forStmt);
+            void Visit(ForEachStatement forEachStmt);
+            void Visit(TopClassDef topClassDef);
         }
 
         public abstract void Accept(IVisitor visitor);
@@ -44,7 +46,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitExprStmt(this);
+                visitor.Visit(this);
             }
         }
 
@@ -59,7 +61,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitDefinitions(this);
+                visitor.Visit(this);
             }
         }
 
@@ -81,7 +83,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitTopVarDef(this);
+                visitor.Visit(this);
             }
         }
 
@@ -105,7 +107,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitTopFuncDef(this);
+                visitor.Visit(this);
             }
         }
 
@@ -126,7 +128,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitTopEventDef(this);
+                visitor.Visit(this);
             }
         }
 
@@ -141,7 +143,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitReturn(this);
+                visitor.Visit(this);
             }
         }
 
@@ -160,7 +162,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitLocalVarDef(this);
+                visitor.Visit(this);
             }
         }
 
@@ -175,7 +177,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitBlock(this);
+                visitor.Visit(this);
             }
         }
 
@@ -194,7 +196,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitTryCatch(this);
+                visitor.Visit(this);
             }
         }
 
@@ -209,7 +211,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitThrow(this);
+                visitor.Visit(this);
             }
         }
 
@@ -228,7 +230,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitIf(this);
+                visitor.Visit(this);
             }
         }
 
@@ -245,7 +247,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitWhile(this);
+                visitor.Visit(this);
             }
         }
 
@@ -266,7 +268,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitFor(this);
+                visitor.Visit(this);
             }
         }
 
@@ -281,7 +283,49 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitStaticStmt(this);
+                visitor.Visit(this);
+            }
+        }
+
+        public class ForEachStatement : Statement
+        {
+            public string VariableName;
+            public Expression Value;
+            public Statement Body;
+
+            public ForEachStatement(string variableName, Expression value, Statement body)
+            {
+                VariableName = variableName;
+                Value = value;
+                Body = body;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.Visit(this);
+            }
+        }
+
+        public class TopClassDef : Statement
+        {
+            public Token Name;
+            public TokenType Visibility;
+            public List<Token> Members;
+            public Expression.FuncValue Constructor;
+            public List<(Token name, Expression.FuncValue func)> Functions; 
+
+            public TopClassDef(Token name, List<Token> members, Expression.FuncValue constructor, List<(Token name, Expression.FuncValue func)> functions, TokenType visibility)
+            {
+                Name = name;
+                Members = members;
+                Constructor = constructor;
+                Functions = functions;
+                Visibility = visibility;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.Visit(this);
             }
         }
     }

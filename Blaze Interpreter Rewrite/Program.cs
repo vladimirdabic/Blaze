@@ -35,8 +35,7 @@ namespace Blaze_Interpreter_Rewrite
             ModuleEnv env = interpreter.LoadModule(module);
 
             // Set the parent to be the global environment
-            env.Parent = globalEnvironment;
-            globalEnvironment.Children.Add(env);
+            env.SetParent(globalEnvironment);
 
             // Run main
             Console.WriteLine("Running function main: ");
@@ -64,7 +63,7 @@ namespace Blaze_Interpreter_Rewrite
             var print_func = new BuiltinFunctionValue("print", (Interpreter itp, List<IValue> args) =>
             {
                 foreach (var arg in args)
-                    Console.Write($"{arg.AsString()} ");
+                    Console.Write($"{arg.AsString()}");
 
                 Console.Write('\n');
                 return null;

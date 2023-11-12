@@ -10,6 +10,7 @@ namespace VD.Blaze.Module
     public class Variable
     {
         public Module ParentModule;
+
         public VariableType Type;
         public Constant Name;
 

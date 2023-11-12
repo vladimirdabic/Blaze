@@ -63,7 +63,7 @@ namespace VD.Blaze.Lexer
         IF, ELSE, WHILE, FOR, BREAK, RETURN,
         FUNC, CLASS, VAR, PRIVATE, PUBLIC, EXTERN,
         TRUE, FALSE, NULL,
-        TRY, CATCH, THROW, STATIC, EVENT,
+        TRY, CATCH, THROW, STATIC, EVENT, NEW,
 
         // End of file
         EOF

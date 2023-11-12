@@ -107,6 +107,11 @@ namespace VD.Blaze.Parser
                 return new Statement.TopFuncDef(visibility, name.Location, (string)name.Value, args, body);
             }
 
+            if(Match(TokenType.CLASS))
+            {
+                return ParseClass(visibility);
+            }
+
             if(Match(TokenType.STATIC))
             {
                 int line = Peek().Location.Line;
@@ -116,6 +121,41 @@ namespace VD.Blaze.Parser
             }
 
             throw new ParserException(Peek().Location.Source, Peek().Location.Line, "Expected a declaration");
+        }
+
+        private Statement.TopClassDef ParseClass(TokenType visibility)
+        {
+            Token name = Consume(TokenType.IDENTIFIER, "Expected class name after 'class'");
+            Consume(TokenType.OPEN_BRACE, "Expected class body");
+
+            var members = new List<Token>();
+            var funcs = new List<(Token, Expression.FuncValue)>();
+            Expression.FuncValue constructor = null;
+
+            while (Available() && !Check(TokenType.CLOSE_BRACE))
+            {
+                if(Match(TokenType.VAR))
+                {
+                    Token varname = Consume(TokenType.IDENTIFIER, "Expected member name after 'var'");
+                    Consume(TokenType.SEMICOLON, "Expected ';' after class member");
+                    members.Add(varname);
+                }
+                // constructor
+                else if(MatchIdentifier((string)name.Value))
+                {
+                    constructor = ParseFuncValue();
+                }
+                else if(Match(TokenType.FUNC))
+                {
+                    Token varname = Consume(TokenType.IDENTIFIER, "Expected method name after 'func'");
+                    var func_value = ParseFuncValue();
+                    funcs.Add((varname, func_value));
+                }
+            }
+
+            Consume(TokenType.CLOSE_BRACE, "Expected '}' to close class body");
+
+            return new Statement.TopClassDef(name, members, constructor, funcs, visibility);
         }
 
         private Statement ParseStatement()
@@ -193,10 +233,24 @@ namespace VD.Blaze.Parser
             if (Match(TokenType.FOR))
             {
                 Consume(TokenType.OPEN_PAREN, "Expected '(' after for");
+
+                // Foreach
+                if(MatchSequence(TokenType.VAR, TokenType.IDENTIFIER, TokenType.COLON))
+                {
+                    Token var_name = _tokens[_current - 2];
+                    Expression iterable = ParseExpression();
+                    Consume(TokenType.CLOSE_PAREN, "Expected ')' to close '(' in the for statement");
+
+                    Statement body_fe = ParseStatement();
+
+                    return new Statement.ForEachStatement((string)var_name.Value, iterable, body_fe);
+                }
+
                 Statement initializer = ParseStatement();
                 Expression condition = ParseExpression();
                 Consume(TokenType.SEMICOLON, "Expected ';' after for condition");
                 Expression increment = ParseExpression();
+
                 Consume(TokenType.CLOSE_PAREN, "Expected ')' to close '(' in the for statement");
 
                 Statement body = ParseStatement();
@@ -362,6 +416,29 @@ namespace VD.Blaze.Parser
             if (Match(TokenType.EVENT))
                 return new Expression.EventValue();
 
+            if (Match(TokenType.NEW))
+            {
+                Expression callee = ParseIndex();
+                var args = new List<Expression>();
+
+                if(Match(TokenType.OPEN_PAREN))
+                {
+                    if (!Check(TokenType.CLOSE_PAREN))
+                    {
+                        while (true)
+                        {
+                            args.Add(ParseExpression());
+                            if (Check(TokenType.CLOSE_PAREN) || !Available()) break;
+                            Consume(TokenType.COMMA, "Expected ',' after constructor argument");
+                        }
+                    }
+
+                    Consume(TokenType.CLOSE_PAREN, "Expected ')' after constructor arguments");
+                }
+
+                return new Expression.New(callee, args);
+            }
+
             if (Match(TokenType.OPEN_SQUARE))
             {
                 List<Expression> exprs = new List<Expression>();
@@ -407,40 +484,73 @@ namespace VD.Blaze.Parser
 
             if (Match(TokenType.FUNC))
             {
-                Token keyword = Prev();
-                string name = Check(TokenType.IDENTIFIER) ? (string)Advance().Value : null;
-                Consume(TokenType.OPEN_PAREN, "Expected function arguments after func");
-
-                var args = new List<string>();
-
-                if (!Check(TokenType.CLOSE_PAREN))
-                {
-                    do
-                    {
-                        Token arg = Consume(TokenType.IDENTIFIER, "Expected func argument name");
-                        args.Add((string)arg.Value);
-                    } while (Match(TokenType.COMMA));
-                }
-
-                Consume(TokenType.CLOSE_PAREN, "Expected ')' after func arguments");
-                Consume(TokenType.OPEN_BRACE, "Expected func body");
-
-                var body = new List<Statement>();
-
-                while (Available() && !Check(TokenType.CLOSE_BRACE))
-                {
-                    int line = Peek().Location.Line;
-                    Statement stmt = ParseStatement();
-                    stmt.Line = line;
-                    body.Add(stmt);
-                }
-
-                Consume(TokenType.CLOSE_BRACE, "Expected '}' to close func body");
-
-                return new Expression.FuncValue(keyword.Location, name, args, body);
+                return ParseFuncValue();
             }
 
             throw new ParserException(Peek().Location.Source, Peek().Location.Line, "Expected an expression");
+        }
+
+        private Expression ParseIndex()
+        {
+            Expression left = ParsePrimary();
+
+            while (true)
+            {
+                if (Match(TokenType.OPEN_SQUARE))
+                {
+                    Expression idx = ParseExpression();
+                    Consume(TokenType.CLOSE_SQUARE, "Expected ']' after index");
+
+                    left = new Expression.GetIndex(left, idx);
+                }
+                else if (Match(TokenType.DOT))
+                {
+                    Token idx = Consume(TokenType.IDENTIFIER, "Expected property after '.'");
+
+                    left = new Expression.GetProperty(left, (string)idx.Value);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return left;
+        }
+
+        private Expression.FuncValue ParseFuncValue()
+        {
+            Token keyword = Prev();
+            string name = Check(TokenType.IDENTIFIER) ? (string)Advance().Value : null;
+            Consume(TokenType.OPEN_PAREN, "Expected function arguments after func");
+
+            var args = new List<string>();
+
+            if (!Check(TokenType.CLOSE_PAREN))
+            {
+                do
+                {
+                    Token arg = Consume(TokenType.IDENTIFIER, "Expected func argument name");
+                    args.Add((string)arg.Value);
+                } while (Match(TokenType.COMMA));
+            }
+
+            Consume(TokenType.CLOSE_PAREN, "Expected ')' after func arguments");
+            Consume(TokenType.OPEN_BRACE, "Expected func body");
+
+            var body = new List<Statement>();
+
+            while (Available() && !Check(TokenType.CLOSE_BRACE))
+            {
+                int line = Peek().Location.Line;
+                Statement stmt = ParseStatement();
+                stmt.Line = line;
+                body.Add(stmt);
+            }
+
+            Consume(TokenType.CLOSE_BRACE, "Expected '}' to close func body");
+
+            return new Expression.FuncValue(keyword.Location, name, args, body);
         }
 
         // Helper functions
@@ -479,6 +589,19 @@ namespace VD.Blaze.Parser
             return false;
         }
 
+        private bool MatchSequence(params TokenType[] types)
+        {
+            for(int i = 0; i < types.Length; i++)
+            {
+                TokenType type = types[i];
+
+                if (Peek(i).Type != type) return false;
+            }
+
+            _current += types.Length;
+            return true;
+        }
+
         private bool Check(TokenType type)
         {
             return Peek().Type == type;
@@ -497,6 +620,11 @@ namespace VD.Blaze.Parser
         private Token Peek()
         {
             return _tokens[_current];
+        }
+
+        private Token Peek(int offset)
+        {
+            return _tokens[_current + offset];
         }
 
         private bool Available()

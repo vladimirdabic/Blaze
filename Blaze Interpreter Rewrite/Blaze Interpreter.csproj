@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Interpreter\Environment\ClassEnv.cs" />
     <Compile Include="Interpreter\Environment\FuncEnv.cs" />
     <Compile Include="Interpreter\Environment\BaseEnv.cs" />
     <Compile Include="Interpreter\Environment\ModuleEnv.cs" />
@@ -51,6 +52,8 @@
     <Compile Include="Interpreter\Interpreter.cs" />
     <Compile Include="Interpreter\Types\BooleanValue.cs" />
     <Compile Include="Interpreter\Types\BuiltinFunctionValue.cs" />
+    <Compile Include="Interpreter\Types\ClassInstanceValue.cs" />
+    <Compile Include="Interpreter\Types\ClassValue.cs" />
     <Compile Include="Interpreter\Types\DictionaryValue.cs" />
     <Compile Include="Interpreter\Types\FunctionValue.cs" />
     <Compile Include="Interpreter\Types\IteratorValue.cs" />
@@ -59,11 +62,13 @@
     <Compile Include="Interpreter\Types\IValueCallable.cs" />
     <Compile Include="Interpreter\Types\IValueIndexable.cs" />
     <Compile Include="Interpreter\Types\IValueIterable.cs" />
+    <Compile Include="Interpreter\Types\IValueNew.cs" />
     <Compile Include="Interpreter\Types\IValueProperties.cs" />
     <Compile Include="Interpreter\Types\ListValue.cs" />
     <Compile Include="Interpreter\Types\NullValue.cs" />
     <Compile Include="Interpreter\Types\NumberValue.cs" />
     <Compile Include="Interpreter\Types\StringValue.cs" />
+    <Compile Include="Module\Class.cs" />
     <Compile Include="Module\Constant.cs" />
     <Compile Include="Module\Function.cs" />
     <Compile Include="Module\Module.cs" />

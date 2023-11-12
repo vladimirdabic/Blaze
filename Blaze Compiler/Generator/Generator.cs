@@ -65,13 +65,13 @@ namespace VD.Blaze.Generator
             expr.Accept(this);
         }
 
-        public void VisitNumber(Expression.Number number)
+        public void Visit(Expression.Number number)
         {
             Constant constant = _module.AddConstant(new Constant.Number(number.Value));
             _function.Emit(Opcode.LDCONST, constant);
         }
 
-        public void VisitDefinitions(Statement.Definitions definitions)
+        public void Visit(Statement.Definitions definitions)
         {
             foreach (var definition in definitions.Statements)
             {
@@ -79,7 +79,7 @@ namespace VD.Blaze.Generator
             }
         }
 
-        public void VisitTopFuncDef(Statement.TopFuncDef topFuncDef)
+        public void Visit(Statement.TopFuncDef topFuncDef)
         {
             if(_variables.ContainsKey(topFuncDef.Name))
             {
@@ -126,7 +126,7 @@ namespace VD.Blaze.Generator
             _env = _env.Parent;
         }
 
-        public void VisitTopVarDef(Statement.TopVariableDef topVarDef)
+        public void Visit(Statement.TopVariableDef topVarDef)
         {
             VariableType visibility = VariableType.PRIVATE;
 
@@ -154,13 +154,13 @@ namespace VD.Blaze.Generator
             }
         }
 
-        public void VisitString(Expression.String str)
+        public void Visit(Expression.String str)
         {
             Constant constant = _module.AddConstant(new Constant.String(str.Value));
             _function.Emit(Opcode.LDCONST, constant);
         }
 
-        public void VisitBinaryOp(Expression.BinaryOperation binOp)
+        public void Visit(Expression.BinaryOperation binOp)
         {
             Evaluate(binOp.Left);
             Evaluate(binOp.Right);
@@ -223,13 +223,13 @@ namespace VD.Blaze.Generator
             }
         }
 
-        public void VisitExprStmt(Statement.ExprStmt exprStmt)
+        public void Visit(Statement.ExprStmt exprStmt)
         {
             Evaluate(exprStmt.Expr);
             _function.Emit(Opcode.POP, 1);
         }
 
-        public void VisitVariable(Expression.Variable variable)
+        public void Visit(Expression.Variable variable)
         {
             string name = (string)variable.Data.Value;
 
@@ -249,6 +249,15 @@ namespace VD.Blaze.Generator
                         _function.Emit(Opcode.LDLOCAL, local.LocalVar);
                     return;
                 }
+
+                if (envVar is ClassEnv.Variable classVar)
+                {
+                    // if (level != 0)
+                    //   _function.Emit(Opcode.EXTENDED_ARG, (byte)level);
+
+                    _function.Emit(Opcode.LDVAR, classVar.Constant.Index);
+                    return;
+                }
             }
 
             if (_variables.ContainsKey(name))
@@ -261,7 +270,7 @@ namespace VD.Blaze.Generator
             throw new GeneratorException(_source, _line, $"Undefined variable '{name}'");
         }
 
-        public void VisitCall(Expression.Call call)
+        public void Visit(Expression.Call call)
         {
             for(int i = call.Arguments.Count - 1; i >= 0; i--)
             {
@@ -273,7 +282,7 @@ namespace VD.Blaze.Generator
             _function.Emit(Opcode.CALL, (byte)call.Arguments.Count);
         }
 
-        public void VisitReturn(Statement.Return returnStmt)
+        public void Visit(Statement.Return returnStmt)
         {
             if(returnStmt.Value is null)
                 _function.Emit(Opcode.LDNULL);
@@ -283,7 +292,7 @@ namespace VD.Blaze.Generator
             _function.Emit(Opcode.RET);
         }
 
-        public void VisitLocalVarDef(Statement.LocalVariableDef localVarDef)
+        public void Visit(Statement.LocalVariableDef localVarDef)
         {
             LocalVariable local = _function.DeclareLocal();
             var variable = new FuncEnv.Variable(localVarDef.Name, local);
@@ -296,7 +305,7 @@ namespace VD.Blaze.Generator
             }
         }
 
-        public void VisitAssignVar(Expression.AssignVariable assignVar)
+        public void Visit(Expression.AssignVariable assignVar)
         {
             Evaluate(assignVar.Value);
             _function.Emit(Opcode.DUP, 1);
@@ -317,6 +326,12 @@ namespace VD.Blaze.Generator
 
                     return;
                 }
+
+                if (envVar is ClassEnv.Variable classVar)
+                {
+                    _function.Emit(Opcode.STVAR, classVar.Constant.Index);
+                    return;
+                }
             }
 
             if (_variables.ContainsKey(assignVar.Name))
@@ -329,17 +344,17 @@ namespace VD.Blaze.Generator
             throw new GeneratorException(_source, _line, $"Assignment to an undefined variable '{assignVar.Name}'");
         }
 
-        public void VisitBool(Expression.Boolean boolean)
+        public void Visit(Expression.Boolean boolean)
         {
             _function.Emit(Opcode.LDBOOL, (byte)(boolean.Value ? 1 : 0));
         }
 
-        public void VisitNull(Expression.Null nullExpr)
+        public void Visit(Expression.Null nullExpr)
         {
             _function.Emit(Opcode.LDNULL);
         }
 
-        public void VisitBlock(Statement.Block block)
+        public void Visit(Statement.Block block)
         {
             _env.PushFrame();
 
@@ -354,7 +369,7 @@ namespace VD.Blaze.Generator
             _env.PopFrame();
         }
 
-        public void VisitTryCatch(Statement.TryCatch tryCatch)
+        public void Visit(Statement.TryCatch tryCatch)
         {
             int catchInstIdx = _function.Instructions.Count;
             _function.Emit(Opcode.CATCH, 0);
@@ -388,7 +403,7 @@ namespace VD.Blaze.Generator
             _function.Instructions[jmpInstIdx].Argument = (uint)(_function.Instructions.Count - jmpInstIdx);
         }
 
-        public void VisitIf(Statement.IfStatement ifStmt)
+        public void Visit(Statement.IfStatement ifStmt)
         {
             Evaluate(ifStmt.Condition);
 
@@ -410,7 +425,7 @@ namespace VD.Blaze.Generator
             }
         }
 
-        public void VisitFunctionValue(Expression.FuncValue funcValue)
+        public void Visit(Expression.FuncValue funcValue)
         {
             if (_function is not null)
                 _functionStack.Push(_function);
@@ -445,7 +460,7 @@ namespace VD.Blaze.Generator
             _function.Emit(Opcode.LDFUNC, function);
         }
 
-        public void VisitThrow(Statement.Throw throwStmt)
+        public void Visit(Statement.Throw throwStmt)
         {
             if (throwStmt.Value is null)
                 _function.Emit(Opcode.LDNULL);
@@ -455,29 +470,20 @@ namespace VD.Blaze.Generator
             _function.Emit(Opcode.THROW);
         }
 
-        public void VisitStaticStmt(Statement.StaticStmt staticStmt)
+        public void Visit(Statement.StaticStmt staticStmt)
         {
-            if (_function is not null)
-                _functionStack.Push(_function);
-
             // Static function
-            _function = _module.Functions[0];
-            _env = new FuncEnv(_env);
-
+            EnterFunction(_module.Functions[0]);
             Evaluate(staticStmt.Stmt);
-
-            if (_functionStack.Count != 0)
-                _function = _functionStack.Pop();
-
-            _env = _env.Parent;
+            LeaveFunction();
         }
 
-        public void VisitEventValue(Expression.EventValue eventValue)
+        public void Visit(Expression.EventValue eventValue)
         {
             _function.Emit(Opcode.LDEVENT);
         }
 
-        public void VisitListValue(Expression.ListValue listValue)
+        public void Visit(Expression.ListValue listValue)
         {
             // Push values backwards
             for(int i = listValue.Values.Count - 1;  i >= 0; i--)
@@ -488,12 +494,12 @@ namespace VD.Blaze.Generator
             _function.Emit(Opcode.LDLIST, (byte)listValue.Values.Count);
         }
 
-        public void VisitTopEventDef(Statement.TopEventDef topEventDef)
+        public void Visit(Statement.TopEventDef topEventDef)
         {
             throw new NotImplementedException();
         }
 
-        public void VisitGetIndex(Expression.GetIndex getIndex)
+        public void Visit(Expression.GetIndex getIndex)
         {
             Evaluate(getIndex.Index);
             Evaluate(getIndex.Left);
@@ -501,7 +507,7 @@ namespace VD.Blaze.Generator
             _function.Emit(Opcode.LDINDEX);
         }
 
-        public void VisitSetIndex(Expression.SetIndex setIndex)
+        public void Visit(Expression.SetIndex setIndex)
         {
             Evaluate(setIndex.Value);
             _function.Emit(Opcode.DUP);
@@ -511,7 +517,7 @@ namespace VD.Blaze.Generator
             _function.Emit(Opcode.STINDEX);
         }
 
-        public void VisitGetProperty(Expression.GetProperty getProperty)
+        public void Visit(Expression.GetProperty getProperty)
         {
             Constant propName = _module.AddConstant(new Constant.String(getProperty.Property));
             Evaluate(getProperty.Left);
@@ -519,7 +525,7 @@ namespace VD.Blaze.Generator
             _function.Emit(Opcode.LDPROP, propName);
         }
 
-        public void VisitSetProperty(Expression.SetProperty setProperty)
+        public void Visit(Expression.SetProperty setProperty)
         {
             Constant propName = _module.AddConstant(new Constant.String(setProperty.Property));
 
@@ -529,7 +535,7 @@ namespace VD.Blaze.Generator
             _function.Emit(Opcode.STPROP, propName);
         }
 
-        public void VisitWhile(Statement.WhileStatement whileStmt)
+        public void Visit(Statement.WhileStatement whileStmt)
         {
             int conditionIdx = _function.Instructions.Count;
             Evaluate(whileStmt.Condition);
@@ -543,7 +549,7 @@ namespace VD.Blaze.Generator
             _function.Instructions[jmpIdx].Argument = (uint)(_function.Instructions.Count - jmpIdx);
         }
 
-        public void VisitFor(Statement.ForStatement forStmt)
+        public void Visit(Statement.ForStatement forStmt)
         {
             _env.PushFrame();
             Evaluate(forStmt.Initializer);
@@ -562,7 +568,7 @@ namespace VD.Blaze.Generator
             _env.PopFrame();
         }
 
-        public void VisitDictValue(Expression.DictValue dictValue)
+        public void Visit(Expression.DictValue dictValue)
         {
             foreach(var pair in dictValue.Pairs)
             {
@@ -573,10 +579,152 @@ namespace VD.Blaze.Generator
             _function.Emit(Opcode.LDOBJ, (byte)dictValue.Pairs.Count);
         }
 
-        public void VisitIterator(Expression.Iterator iteratorValue)
+        public void Visit(Expression.Iterator iteratorValue)
         {
             Evaluate(iteratorValue.Value);
             _function.Emit(Opcode.ITER);
+        }
+
+        public void Visit(Statement.ForEachStatement forEachStmt)
+        {
+            _env.PushFrame();
+
+            LocalVariable iterator_variable = _function.DeclareLocal();
+            var variable = new FuncEnv.Variable(forEachStmt.VariableName, iterator_variable);
+            _env.DefineVariable(forEachStmt.VariableName, variable);
+
+            Evaluate(forEachStmt.Value);
+            _function.Emit(Opcode.ITER);
+            int cond_idx = _function.Instructions.Count;
+            _function.Emit(Opcode.DUP);
+
+            Constant available_prop = _module.AddConstant(new Constant.String("available"));
+            Constant next_prop = _module.AddConstant(new Constant.String("next"));
+
+            _function.Emit(Opcode.LDPROP, available_prop);
+
+            int jmpf_idx = _function.Instructions.Count;
+            _function.Emit(Opcode.JMPF, 0);
+
+            _function.Emit(Opcode.DUP);
+            _function.Emit(Opcode.LDPROP, next_prop);
+            _function.Emit(Opcode.STLOCAL, iterator_variable);
+            Evaluate(forEachStmt.Body);
+            _function.Emit(Opcode.JMPB, _function.Instructions.Count - cond_idx);
+
+            _function.Instructions[jmpf_idx].Argument = (uint)(_function.Instructions.Count - jmpf_idx);
+
+            _env.PopFrame();
+        }
+
+        public void Visit(Statement.TopClassDef topClassDef)
+        {
+            // Setup class and local env
+            string class_name = (string)topClassDef.Name.Value;
+            Class cls = _module.CreateClass(class_name);
+
+            Variable variable = _module.Variables[_module.Variables.Count - 1];
+            _variables[class_name] = variable;
+
+            var cls_env = new ClassEnv(_env);
+            _env = cls_env;
+
+            foreach(var member in topClassDef.Members)
+            {
+                var name = (string)member.Value;
+                Constant var_name = _module.AddConstant(new Constant.String(name));
+                cls.Members.Add(var_name);
+                _env.DefineVariable(name, new ClassEnv.Variable(name, var_name));
+            }
+
+            Function constructor = _module.CreateAnonymousFunction(topClassDef.Constructor is not null ? topClassDef.Constructor.Args.Count + 1 : 1);
+            cls.Constructor = constructor;
+
+            foreach (var func in topClassDef.Functions)
+            {
+                string name = (string)func.name.Value;
+
+                Constant var_name = _module.AddConstant(new Constant.String(name));
+                cls.Members.Add(var_name);
+                cls_env.DefineVariable(name, new ClassEnv.Variable(name, var_name));
+
+                Function function = _module.CreateAnonymousFunction(func.func.Args.Count);
+
+                EnterFunction(function);
+                GenerateFunctionBody(func.func);
+                LeaveFunction();
+
+                constructor.Emit(Opcode.LDFUNC, function);
+                constructor.Emit(Opcode.STVAR, var_name);
+            }
+
+            if(topClassDef.Constructor is not null)
+            {
+                var ctor = topClassDef.Constructor;
+                
+                EnterFunction(constructor);
+                GenerateFunctionBody(ctor);
+                LeaveFunction();
+            }
+
+            _env = _env.Parent;
+        }
+
+        public void Visit(Expression.New newValue)
+        {
+            for (int i = newValue.Arguments.Count - 1; i >= 0; i--)
+            {
+                Evaluate(newValue.Arguments[i]);
+            }
+            Evaluate(newValue.Callee);
+
+            _function.Emit(Opcode.NEW, newValue.Arguments.Count);
+        }
+
+        private void GenerateFunctionBody(Expression.FuncValue func)
+        {
+
+            for (int i = 0; i < func.Args.Count; i++)
+            {
+                ((FuncEnv)_env).Arguments[func.Args[i]] = i;
+            }
+
+            foreach (var stmt in func.Body)
+            {
+                Evaluate(stmt);
+
+                if (stmt is Statement.Return) break;
+            }
+        }
+
+        private void EnterFunction(Function function)
+        {
+            if (_function is not null)
+                _functionStack.Push(_function);
+
+            // Setup function and local env
+            _function = function;
+            _env = new FuncEnv(_env);
+        }
+
+        private void LeaveFunction()
+        {
+            if (_functionStack.Count != 0)
+                _function = _functionStack.Pop();
+
+            _env = _env.Parent;
+        }
+
+        private VariableType GetVisibility(TokenType visibility)
+        {
+            switch (visibility)
+            {
+                case TokenType.PRIVATE: return VariableType.PRIVATE;
+                case TokenType.PUBLIC: return VariableType.PUBLIC;
+                case TokenType.EXTERN: return VariableType.EXTERNAL;
+            }
+
+            return VariableType.PRIVATE;
         }
     }
 

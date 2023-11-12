@@ -41,6 +41,11 @@ namespace VD.Blaze.Interpreter.Environment
         {
             return uplevel == 0 ? this : Parent.GetParent(uplevel - 1);
         }
+
+        public void SetParent(BaseEnv parent)
+        {
+            Parent = parent;
+        }
     }
 
     public interface IVariable

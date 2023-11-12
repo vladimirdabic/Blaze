@@ -45,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Generator\Environment\BaseEnv.cs" />
+    <Compile Include="Generator\Environment\ClassEnv.cs" />
     <Compile Include="Generator\Environment\FuncEnv.cs" />
     <Compile Include="Generator\Generator.cs" />
     <Compile Include="Lexer\Lexer.cs" />

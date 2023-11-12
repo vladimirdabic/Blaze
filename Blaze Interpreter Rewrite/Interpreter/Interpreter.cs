@@ -22,6 +22,7 @@ namespace VD.Blaze.Interpreter
         internal int _current;
         internal List<Instruction> _instructions;
         internal Stack<int> _exceptionStack;
+        internal bool _inConstructor;
 
         private int _line;
 
@@ -76,8 +77,9 @@ namespace VD.Blaze.Interpreter
             _exceptionStack.Clear();
             _current = 0;
             _line = 0;
+            _inConstructor = false;
 
-            while(_current < _instructions.Count || _contexts.Count != 0)
+            while (_current < _instructions.Count || _contexts.Count != 0)
             {
                 _line = (int)_instructions[_current].Line;
 
@@ -153,7 +155,12 @@ namespace VD.Blaze.Interpreter
                         break;
 
                     case Opcode.LDCLASS:
-                        // stack.Push(_moduleEnv.Classes[oparg]);
+                        {
+                            // This must be done so each class can have its own closure, otherwise they all share the same closure
+                            var cls = Module.GetClass(opargi);
+                            cls.Closure = Environment;
+                            Stack.Push(cls);
+                        }
                         break;
 
                     case Opcode.LDBOOL:
@@ -209,8 +216,6 @@ namespace VD.Blaze.Interpreter
                             for (int i = 0; i < oparg; ++i)
                                 args.Add(Stack.Pop());
 
-                            // Push result
-
                             try
                             {
                                 PushContext();
@@ -226,7 +231,48 @@ namespace VD.Blaze.Interpreter
                         }
                         break;
 
+                    case Opcode.NEW:
+                        {
+                            IValue value = Stack.Pop();
+
+                            if (value is not IValueNew)
+                            {
+                                Throw($"Tried calling a new instance value of type '{value.GetName()}'");
+                                break;
+                            }
+
+                            List<IValue> args = new List<IValue>();
+
+                            var instance = new ClassInstanceValue();
+                            //Stack.Push(instance);
+
+                            for (int i = 0; i < oparg; ++i)
+                                args.Add(Stack.Pop());
+
+                            try
+                            {
+                                Stack.Push(instance);
+
+                                PushContext();
+                                ((IValueNew)value).New(this, instance, args);
+
+                                _inConstructor = true;
+                                // PopContext();
+                            }
+                            catch (InterpreterInternalException e)
+                            {
+                                Throw(e.Message);
+                            }
+                        }
+                        break;
+
                     case Opcode.RET:
+                        if (_inConstructor)
+                        {
+                            Stack.Pop(); // Pop return value from constructor, not needed
+                            _inConstructor = false;
+                        }
+
                         if(_contexts.Count == 0)
                             _current = _instructions.Count;
                         else
@@ -618,10 +664,11 @@ namespace VD.Blaze.Interpreter
 
         internal void PushContext(List<Instruction> instructions = null)
         {
-            _contexts.Push(new ExecutionContext(_current, _instructions, Environment, Module, _exceptionStack));
+            _contexts.Push(new ExecutionContext(_current, _instructions, Environment, Module, _exceptionStack, _inConstructor));
             _current = 0;
             _instructions = instructions;
             _exceptionStack = new Stack<int>();
+            _inConstructor = false;
         }
 
         internal void PopContext()
@@ -632,6 +679,7 @@ namespace VD.Blaze.Interpreter
             Environment = ctx.Environment;
             _exceptionStack = ctx.ExceptionStack;
             Module = ctx.Module;
+            _inConstructor = ctx.InConstructor;
         }
     }
 

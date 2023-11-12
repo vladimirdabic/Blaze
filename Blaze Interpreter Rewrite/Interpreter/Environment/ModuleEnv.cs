@@ -70,6 +70,17 @@ namespace VD.Blaze.Interpreter.Environment
         }
 
         /// <summary>
+        /// Creates a new instance of a ClassValue from a Module Function
+        /// </summary>
+        /// <param name="index">Index of the class in the module class list</param>
+        /// <returns></returns>
+        public ClassValue GetClass(int index)
+        {
+            // return new ClassValue(Module.Functions[index], this, this);
+            return new ClassValue(Module.Classes[index], this, this);
+        }
+
+        /// <summary>
         /// Returns a named function
         /// </summary>
         /// <param name="name">Name of the function</param>
@@ -181,6 +192,12 @@ namespace VD.Blaze.Interpreter.Environment
         public override IVariable GetVariable(int index)
         {
             throw new NotImplementedException();
+        }
+
+        public void SetParent(ModuleEnv parent)
+        {
+            base.SetParent(parent);
+            parent.Children.Add(this);
         }
 
         public class Variable : IVariable

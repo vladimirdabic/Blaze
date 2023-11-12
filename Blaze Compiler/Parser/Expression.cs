@@ -12,23 +12,24 @@ namespace VD.Blaze.Parser
     {
         public interface IVisitor
         {
-            void VisitNumber(Number number);
-            void VisitString(String str);
-            void VisitBool(Boolean boolean);
-            void VisitNull(Null nullExpr);
-            void VisitBinaryOp(BinaryOperation binOp);
-            void VisitVariable(Variable variable);
-            void VisitCall(Call call);
-            void VisitAssignVar(AssignVariable assignVar);
-            void VisitFunctionValue(FuncValue funcValue);
-            void VisitEventValue(EventValue eventValue);
-            void VisitListValue(ListValue listValue);
-            void VisitGetIndex(GetIndex getIndex);
-            void VisitSetIndex(SetIndex setIndex);
-            void VisitGetProperty(GetProperty getProperty);
-            void VisitSetProperty(SetProperty setProperty);
-            void VisitDictValue(DictValue dictValue);
-            void VisitIterator(Iterator iteratorValue);
+            void Visit(Number number);
+            void Visit(String str);
+            void Visit(Boolean boolean);
+            void Visit(Null nullExpr);
+            void Visit(BinaryOperation binOp);
+            void Visit(Variable variable);
+            void Visit(Call call);
+            void Visit(AssignVariable assignVar);
+            void Visit(FuncValue funcValue);
+            void Visit(EventValue eventValue);
+            void Visit(ListValue listValue);
+            void Visit(GetIndex getIndex);
+            void Visit(SetIndex setIndex);
+            void Visit(GetProperty getProperty);
+            void Visit(SetProperty setProperty);
+            void Visit(DictValue dictValue);
+            void Visit(Iterator iteratorValue);
+            void Visit(New newValue);
         }
 
         public abstract void Accept(IVisitor visitor);
@@ -46,7 +47,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitNumber(this);
+                visitor.Visit(this);
             }
         }
 
@@ -61,7 +62,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitString(this);
+                visitor.Visit(this);
             }
         }
 
@@ -76,7 +77,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitBool(this);
+                visitor.Visit(this);
             }
         }
 
@@ -85,7 +86,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitNull(this);
+                visitor.Visit(this);
             }
         }
 
@@ -100,7 +101,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitVariable(this);
+                visitor.Visit(this);
             }
         }
 
@@ -119,7 +120,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitBinaryOp(this);
+                visitor.Visit(this);
             }
         }
 
@@ -136,7 +137,24 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitCall(this);
+                visitor.Visit(this);
+            }
+        }
+
+        public class New : Expression
+        {
+            public Expression Callee;
+            public List<Expression> Arguments;
+
+            public New(Expression callee, List<Expression> arguments)
+            {
+                Callee = callee;
+                Arguments = arguments;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.Visit(this);
             }
         }
 
@@ -155,7 +173,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitAssignVar(this);
+                visitor.Visit(this);
             }
         }
 
@@ -176,7 +194,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitFunctionValue(this);
+                visitor.Visit(this);
             }
         }
 
@@ -184,7 +202,7 @@ namespace VD.Blaze.Parser
         {
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitEventValue(this);
+                visitor.Visit(this);
             }
         }
 
@@ -199,7 +217,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitListValue(this);
+                visitor.Visit(this);
             }
         }
 
@@ -216,7 +234,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitGetIndex(this);
+                visitor.Visit(this);
             }
         }
 
@@ -235,7 +253,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitSetIndex(this);
+                visitor.Visit(this);
             }
         }
 
@@ -252,7 +270,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitGetProperty(this);
+                visitor.Visit(this);
             }
         }
 
@@ -271,7 +289,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitSetProperty(this);
+                visitor.Visit(this);
             }
         }
 
@@ -286,7 +304,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitDictValue(this);
+                visitor.Visit(this);
             }
         }
 
@@ -301,7 +319,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
-                visitor.VisitIterator(this);
+                visitor.Visit(this);
             }
         }
     }
