@@ -7,7 +7,7 @@
     <ProjectGuid>{F8A37932-2B89-4C20-B12E-6B40F0B7589C}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Blaze_Interpreter</RootNamespace>
-    <AssemblyName>Blaze Interpreter</AssemblyName>
+    <AssemblyName>blzi</AssemblyName>
     <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
