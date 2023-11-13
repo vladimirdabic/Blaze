@@ -93,6 +93,12 @@ namespace Blaze_Interpreter
 
                 var func = env.GetFunction("main");
 
+                if(func is null)
+                {
+                    Console.WriteLine("Entry point 'main' not found");
+                    return;
+                }
+
                 interpreter.RunFunction(env, func, null);
             }
             catch (InterpreterException e)
