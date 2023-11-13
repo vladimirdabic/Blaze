@@ -4,9 +4,10 @@ It runs by interpreting bytecode instructions with a stack based interpreter.
 
 _**Why do we need another language?**_\
 Well, we don't. It's a project for college.\
-Nobody will actually use it for anything serious.
+Nobody will actually use it for anything serious.\
+It's not designed to be super fast or efficient.
 
-Documentation (in Serbian): [PDF](https://drive.google.com/file/d/1I4bpM7I9xLVZhMllnoYMQ4An64-sZTPR/view?usp=sharing) 
+Documentation (in Serbian): [PDF](https://drive.google.com/file/d/1I4bpM7I9xLVZhMllnoYMQ4An64-sZTPR/view?usp=sharing)
 
 ### Usage
 ```
