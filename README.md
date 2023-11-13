@@ -46,7 +46,7 @@ Variables can be declared as public, private or extern.
 The print function is provided from an internal module in the interpreter.\
 That might sound like a global environment, but unless you specify that print is *extern* the interpreter won't be able to see it.
 
-During runtime each module can have multiple children and a parent which makes up a hierarchy.
+During runtime each module can have multiple children and a parent which make up a hierarchy.
 
 ### Libraries
 Blaze doesn't come with a standard library, that task is up to the developer who's embedding the language into their application.\
