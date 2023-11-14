@@ -9,7 +9,7 @@ It's not designed to be super fast or efficient.
 
 Documentation (in Serbian): [PDF](https://drive.google.com/file/d/1I4bpM7I9xLVZhMllnoYMQ4An64-sZTPR/view?usp=sharing)
 
-### Usage
+## Usage
 ```
 Usage: blzc.exe [options]
 Options:
@@ -22,7 +22,7 @@ Options:
     -d              Print the contents of the module file
 ```
 
-### Example
+## Example
 ```
 extern var print;
 
@@ -48,14 +48,14 @@ That might sound like a global environment, but unless you specify that print is
 
 During runtime each module can have multiple children and a parent which make up a hierarchy.
 
-### Libraries
+## Libraries
 Blaze doesn't come with a standard library, that task is up to the developer who's embedding the language into their application.\
 The developer should keep in mind that goal is to provide the user only with functions they'll actually need.
 
 In the future there might be a system where you can load modules that are made with C# and exported as a C# DLL.\
 When that's possible, then some kind of standard library might appear.
 
-### Features
+## Features
 Blaze currently supports:
 - Basic values (Numbers, Strings, Booleans, null)
 - Functions
@@ -67,7 +67,7 @@ Blaze currently supports:
 Planned features:
 - Events
 
-### Events (to be added)
+## Events (to be added)
 As Blaze is an embeddable language, it has to have some kind of event system.\
 The host application might expose an event to which you can attach a callback.
 ```
