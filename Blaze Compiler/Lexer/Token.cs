@@ -42,6 +42,7 @@ namespace VD.Blaze.Lexer
     {
         // + - * /
         PLUS, MINUS, STAR, SLASH,
+        DOUBLE_MINUS, DOUBLE_PLUS,
 
         // ( ), { }, [ ]
         OPEN_PAREN, CLOSE_PAREN, OPEN_BRACE, CLOSE_BRACE, OPEN_SQUARE, CLOSE_SQUARE,

@@ -108,7 +108,6 @@ namespace VD.Blaze.Module
 
                 for(int i = 0; i < 3; i++)
                 {
-                    mask >>= 8;
                     byte ext_arg = (byte)((inst.Argument & mask) >> ((3 - i) * 8));
 
                     if(ext_arg != 0)
@@ -122,6 +121,8 @@ namespace VD.Blaze.Module
                         bw.Write((byte)Opcode.EXTENDED_ARG);
                         bw.Write(ext_arg);
                     }
+
+                    mask >>= 8;
                 }
 
                 if (ParentModule.Debug)
