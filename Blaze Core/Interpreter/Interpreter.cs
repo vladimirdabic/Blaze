@@ -653,13 +653,18 @@ namespace VD.Blaze.Interpreter
                 if (_exceptionStack.Count != 0)
                 {
                     _current = _exceptionStack.Pop();
+                    return;
                 }
                 else if(_contexts.Count != 0)
                 {
                     // Go back up one call
                     PopContext();
                 }
-            } while (_contexts.Count != 0);
+                else
+                {
+                    break;
+                }
+            } while (true);
 
             throw new InterpreterException(Stack.Pop(), this, (module_name, _line));
         }
