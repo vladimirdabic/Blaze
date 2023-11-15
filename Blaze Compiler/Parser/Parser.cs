@@ -355,7 +355,7 @@ namespace VD.Blaze.Parser
 
         private Expression ParseBinaryOperation(int precedence)
         {
-            Expression left = ParseCall();
+            Expression left = ParseSuffixOp();
 
             while(true)
             {
@@ -377,6 +377,19 @@ namespace VD.Blaze.Parser
 
                 Expression right = ParseBinaryOperation(next_prec);
                 left = new Expression.BinaryOperation(left, right, op.Type);
+            }
+
+            return left;
+        }
+
+        private Expression ParseSuffixOp()
+        {
+            Expression left = ParseCall();
+
+            while(Match(TokenType.DOUBLE_PLUS, TokenType.DOUBLE_MINUS))
+            {
+                Token op = Prev();
+                left = new Expression.SingleOperatorExpr(op.Type, new Expression.SingleOpWrapper(left, true));
             }
 
             return left;
@@ -461,6 +474,13 @@ namespace VD.Blaze.Parser
 
             if (Match(TokenType.EVENT))
                 return new Expression.EventValue();
+
+            if (Match(TokenType.BANG, TokenType.MINUS, TokenType.DOUBLE_PLUS, TokenType.DOUBLE_MINUS))
+            {
+                Token op = Prev();
+                Expression expr = ParseIndex();
+                return new Expression.SingleOperatorExpr(op.Type, new Expression.SingleOpWrapper(expr, false));
+            }
 
             if (Match(TokenType.NEW))
             {

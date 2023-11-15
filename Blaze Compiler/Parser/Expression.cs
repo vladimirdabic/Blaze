@@ -30,6 +30,8 @@ namespace VD.Blaze.Parser
             void Visit(DictValue dictValue);
             void Visit(Iterator iteratorValue);
             void Visit(New newValue);
+            void Visit(SingleOperatorExpr singleOpExpr);
+            void Visit(SingleOpWrapper singleOpWrapper);
         }
 
         public abstract void Accept(IVisitor visitor);
@@ -315,6 +317,40 @@ namespace VD.Blaze.Parser
             public Iterator(Expression value)
             {
                 Value = value;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.Visit(this);
+            }
+        }
+
+        public class SingleOperatorExpr : Expression
+        {
+            public TokenType Operator;
+            public SingleOpWrapper Value;
+
+            public SingleOperatorExpr(TokenType op, SingleOpWrapper value)
+            {
+                Value = value;
+                Operator = op;
+            }
+
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.Visit(this);
+            }
+        }
+
+        public class SingleOpWrapper : Expression
+        {
+            public Expression Value;
+            public bool SuffixDup;
+
+            public SingleOpWrapper(Expression value, bool suffixDup)
+            {
+                Value = value;
+                SuffixDup = suffixDup;
             }
 
             public override void Accept(IVisitor visitor)

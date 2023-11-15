@@ -313,7 +313,7 @@ namespace VD.Blaze.Generator
         public void Visit(Expression.AssignVariable assignVar)
         {
             Evaluate(assignVar.Value);
-            _function.Emit(Opcode.DUP, 1);
+            _function.Emit(Opcode.DUP);
 
             (IVariable envVar, int level) = _env.GetVariable(assignVar.Name);
 
@@ -535,6 +535,7 @@ namespace VD.Blaze.Generator
             Constant propName = _module.AddConstant(new Constant.String(setProperty.Property));
 
             Evaluate(setProperty.Value);
+            _function.Emit(Opcode.DUP);
             Evaluate(setProperty.Left);
 
             _function.Emit(Opcode.STPROP, propName);
@@ -730,6 +731,66 @@ namespace VD.Blaze.Generator
             }
 
             return VariableType.PRIVATE;
+        }
+
+        public void Visit(Expression.SingleOperatorExpr singleOpExpr)
+        {
+            switch(singleOpExpr.Operator)
+            {
+                case TokenType.DOUBLE_PLUS:
+                case TokenType.DOUBLE_MINUS:
+                    {
+                        var add_tree = new Expression.SingleOpWrapper(new Expression.BinaryOperation(singleOpExpr.Value, new Expression.Number(1), singleOpExpr.Operator == TokenType.DOUBLE_PLUS ? TokenType.PLUS : TokenType.MINUS), !singleOpExpr.Value.SuffixDup);
+                        
+                        if(singleOpExpr.Value.Value is Expression.Variable varExpr)
+                        {
+                            Evaluate(new Expression.AssignVariable(varExpr.Data.Location, (string)varExpr.Data.Value, add_tree));
+                        }
+                        else if (singleOpExpr.Value.Value is Expression.GetIndex idx)
+                        {
+                            Evaluate(new Expression.SetIndex(idx.Left, idx.Index, add_tree));
+                        }
+                        else if (singleOpExpr.Value.Value is Expression.GetProperty prop)
+                        {
+                            Evaluate(new Expression.SetProperty(prop.Left, prop.Property, add_tree));
+                        }
+                        else
+                        {
+                            throw new NotImplementedException();
+                        }
+
+                        _function.Emit(Opcode.POP, 1);
+                    }
+                    break;
+
+                case TokenType.MINUS:
+                    {
+                        Constant num = _module.AddConstant(new Constant.Number(0));
+                        _function.Emit(Opcode.LDCONST, num);
+                        Evaluate(singleOpExpr.Value);
+                        _function.Emit(Opcode.SUB);
+                    }
+                    break;
+
+                case TokenType.BANG:
+                    {
+                        Evaluate(singleOpExpr.Value);
+                        _function.Emit(Opcode.NOT);
+                    }
+                    break;
+
+                default:
+                    throw new NotImplementedException();
+
+            }
+        }
+
+        public void Visit(Expression.SingleOpWrapper singleOpWrapper)
+        {
+            Evaluate(singleOpWrapper.Value);
+
+            if (singleOpWrapper.SuffixDup)
+                _function.Emit(Opcode.DUP);
         }
     }
 

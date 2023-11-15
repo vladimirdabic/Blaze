@@ -68,8 +68,8 @@ namespace VD.Blaze.Lexer
             
             switch(c)
             {
-                case '+': _tokens.Add(new Token(TokenType.PLUS, _line, _context)); break;
-                case '-': _tokens.Add(new Token(TokenType.MINUS, _line, _context)); break;
+                case '+': _tokens.Add(new Token(Match('+') ? TokenType.DOUBLE_PLUS : TokenType.PLUS, _line, _context)); break;
+                case '-': _tokens.Add(new Token(Match('-') ? TokenType.DOUBLE_MINUS: TokenType.MINUS, _line, _context)); break;
                 case '*': _tokens.Add(new Token(TokenType.STAR, _line, _context)); break;
                 case '/': 
                     if(Match('/'))
