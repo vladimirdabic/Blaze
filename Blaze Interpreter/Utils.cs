@@ -52,7 +52,6 @@ namespace Blaze_Interpreter
                 // Set its parent to be the current running module
                 env.SetParent(itp.Module);
 
-                // Return null for now
                 return null;
             });
         }

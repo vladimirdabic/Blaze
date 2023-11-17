@@ -10,10 +10,12 @@ namespace VD.Blaze.Interpreter.Environment
     public class ClassEnv : BaseEnv
     {
         public Dictionary<string, IVariable> Members;
+        public IValue ThisReference;
 
-        public ClassEnv(BaseEnv parent) : base(parent)
+        public ClassEnv(BaseEnv parent, IValue thisReference) : base(parent)
         {
             Members = new Dictionary<string, IVariable>();
+            ThisReference = thisReference;
         }
 
         public override IVariable DefineVariable(string name, IValue value = null)
@@ -23,6 +25,10 @@ namespace VD.Blaze.Interpreter.Environment
 
         public override IVariable GetVariable(string name)
         {
+            if (name == "this")
+                // Return new instance of variable each time, not so efficient but prevents overwriting.
+                return new Variable(ThisReference);
+
             if (Members.ContainsKey(name))
                 return Members[name];
 

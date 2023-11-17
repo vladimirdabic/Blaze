@@ -309,18 +309,20 @@ namespace VD.Blaze.Parser
         public class TopClassDef : Statement
         {
             public Token Name;
+            public string ParentName;
             public TokenType Visibility;
             public List<Token> Members;
             public Expression.FuncValue Constructor;
             public List<(Token name, Expression.FuncValue func)> Functions; 
 
-            public TopClassDef(Token name, List<Token> members, Expression.FuncValue constructor, List<(Token name, Expression.FuncValue func)> functions, TokenType visibility)
+            public TopClassDef(Token name, string parentName, List<Token> members, Expression.FuncValue constructor, List<(Token name, Expression.FuncValue func)> functions, TokenType visibility)
             {
                 Name = name;
                 Members = members;
                 Constructor = constructor;
                 Functions = functions;
                 Visibility = visibility;
+                ParentName = parentName;
             }
 
             public override void Accept(IVisitor visitor)

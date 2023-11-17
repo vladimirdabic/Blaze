@@ -43,7 +43,9 @@ namespace VD.Blaze.Interpreter.Types
 
         public void New(Interpreter interpreter, IValue instance, List<IValue> args)
         {
-            var env = new ClassEnv(Closure);
+            // do some base class initialization probably
+
+            var env = new ClassEnv(Closure, instance);
             ((ClassInstanceValue)instance).Properties = env;
 
             foreach (var member in InstanceMembers)

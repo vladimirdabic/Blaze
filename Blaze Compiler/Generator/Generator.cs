@@ -634,6 +634,8 @@ namespace VD.Blaze.Generator
 
             var cls_env = new ClassEnv(_env);
             _env = cls_env;
+            var this_const = _module.AddConstant(new Constant.String("this"));
+            _env.DefineVariable("this", new ClassEnv.Variable("this", this_const));
 
             foreach(var member in topClassDef.Members)
             {

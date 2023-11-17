@@ -13,6 +13,7 @@ namespace VD.Blaze.Module
         public Module ParentModule;
 
         public Constant Name;
+        // public Constant ParentName;
         public List<Constant> Members;
         public Function Constructor;
 
@@ -22,6 +23,7 @@ namespace VD.Blaze.Module
             Name = name;
             Members = new List<Constant>();
             Constructor = null;
+            // ParentName = null;
         }
 
         public void ToBinary(BinaryWriter bw)
