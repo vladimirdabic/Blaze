@@ -62,7 +62,6 @@ namespace VD.Blaze.Interpreter.Types
                 env.Locals[i] = Interpreter.NullInstance;
 
             // Setup the context
-            // interpreter.PushContext(Instructions);
             interpreter._instructions = Instructions;
             interpreter.Environment = env;
             interpreter.Module = ParentModule;

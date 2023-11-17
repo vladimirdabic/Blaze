@@ -80,7 +80,6 @@ namespace Blaze_Interpreter
             ModuleEnv globalEnvironment = new ModuleEnv();
             Utils.CreateLibraries(globalEnvironment);
 
-            // Load module file
             try
             {
                 ModuleEnv env = interpreter.LoadModule(module);
@@ -89,8 +88,6 @@ namespace Blaze_Interpreter
                 env.SetParent(globalEnvironment);
 
                 // Run main
-                // Console.WriteLine("Running function main: ");
-
                 var func = env.GetFunction("main");
 
                 if(func is null)
