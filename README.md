@@ -53,6 +53,7 @@ Blaze doesn't come with a standard library, that task is up to the developer who
 The developer should keep in mind that goal is to provide the user only with functions they'll actually need.
 
 In the future there might be a system where you can load modules that are made with C# and exported as a C# DLL.\
+Maybe even a C++ DLL, which would work better in the future if I ever write an interpreter in C++.\
 When that's possible, then some kind of standard library might appear.
 
 ## Features
