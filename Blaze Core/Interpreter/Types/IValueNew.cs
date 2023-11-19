@@ -9,6 +9,6 @@ namespace VD.Blaze.Interpreter.Types
 {
     public interface IValueNew
     {
-        void New(Interpreter interpreter, IValue instance, List<IValue> args);
+        void New(VM vm, IValue instance, List<IValue> args);
     }
 }

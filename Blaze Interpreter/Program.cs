@@ -63,6 +63,7 @@ namespace Blaze_Interpreter
                 return;
             }
 
+            // Load module
             Module module = new Module();
 
             MemoryStream stream = new MemoryStream(File.ReadAllBytes(moduleFileName));
@@ -76,16 +77,16 @@ namespace Blaze_Interpreter
                 return;
             }
 
-            Interpreter interpreter = new Interpreter();
-            ModuleEnv globalEnvironment = new ModuleEnv();
-            Utils.CreateLibraries(globalEnvironment);
+            // Setup vm and internal module
+            VM vm = new VM();
+            ModuleEnv internal_module = new ModuleEnv();
+            Utils.CreateLibraries(internal_module);
 
             try
             {
-                ModuleEnv env = interpreter.LoadModule(module);
-
-                // Set the parent to be the global environment
-                env.SetParent(globalEnvironment);
+                // Load user module
+                ModuleEnv env = vm.LoadModule(module);
+                env.SetParent(internal_module);
 
                 // Run main
                 var func = env.GetFunction("main");
@@ -96,9 +97,9 @@ namespace Blaze_Interpreter
                     return;
                 }
 
-                interpreter.RunFunction(env, func, null);
+                vm.RunFunction(func, null);
             }
-            catch (InterpreterException e)
+            catch (VMException e)
             {
                 if (e.Location.line == 0)
                     Console.WriteLine($"[{e.Location.filename}] {e.Value.AsString()}");

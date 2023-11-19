@@ -59,7 +59,7 @@ namespace Blaze_Interpreter
         }
 
 
-        public void DefineFunction(string name, Func<Interpreter, List<IValue>, IValue> func)
+        public void DefineFunction(string name, Func<VM, List<IValue>, IValue> func)
         {
             var func_obj = new BuiltinFunctionValue(name, func);
             Properties[name] = func_obj;

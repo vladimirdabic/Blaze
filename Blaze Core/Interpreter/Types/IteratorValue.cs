@@ -73,7 +73,7 @@ namespace VD.Blaze.Interpreter.Types
 
         public override IValue Next()
         {
-            if (!Available()) return Interpreter.NullInstance;
+            if (!Available()) return VM.NullInstance;
             return Value.Values[_index++];
         }
 
@@ -110,7 +110,7 @@ namespace VD.Blaze.Interpreter.Types
                 return listPair;
             }
 
-            return Interpreter.NullInstance;
+            return VM.NullInstance;
         }
 
         public override bool Available()
@@ -132,7 +132,7 @@ namespace VD.Blaze.Interpreter.Types
 
         public override IValue Next()
         {
-            if (!Available()) return Interpreter.NullInstance;
+            if (!Available()) return VM.NullInstance;
             return new StringValue(Value[_index++].ToString());
         }
 

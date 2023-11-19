@@ -9,9 +9,9 @@ namespace VD.Blaze.Interpreter.Types
     public class BuiltinFunctionValue : IValue, IValueCallable
     {
         public string Name;
-        public Func<Interpreter, List<IValue>, IValue> Callback;
+        public Func<VM, List<IValue>, IValue> Callback;
 
-        public BuiltinFunctionValue(string name, Func<Interpreter, List<IValue>, IValue> callback)
+        public BuiltinFunctionValue(string name, Func<VM, List<IValue>, IValue> callback)
         {
             Name = name;
             Callback = callback;
@@ -27,11 +27,11 @@ namespace VD.Blaze.Interpreter.Types
             return $"<built-in function {Name}>";
         }
 
-        public void Call(Interpreter interpreter, List<IValue> args)
+        public void Call(VM vm, List<IValue> args)
         {
-            var res = Callback(interpreter, args);
+            var res = Callback(vm, args);
 
-            interpreter.Stack.Push(res is null ? Interpreter.NullInstance : res);
+            vm.Stack.Push(res is null ? VM.NullInstance : res);
         }
 
         public IValue Copy()

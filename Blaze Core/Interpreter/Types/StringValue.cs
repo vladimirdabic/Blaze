@@ -142,7 +142,7 @@ namespace VD.Blaze.Interpreter.Types
 
         private void DefineProperties()
         {
-            Properties["split"] = new BuiltinFunctionValue("string.split", (Interpreter itp, List<IValue> args) =>
+            Properties["split"] = new BuiltinFunctionValue("string.split", (VM itp, List<IValue> args) =>
             {
                 if (args.Count != 1)
                 {

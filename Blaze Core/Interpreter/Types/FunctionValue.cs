@@ -47,24 +47,24 @@ namespace VD.Blaze.Interpreter.Types
             return "function";
         }
 
-        public void Call(Interpreter interpreter, List<IValue> args)
+        public void Call(VM vm, List<IValue> args)
         {
             var env = new FuncEnv(Closure)
             {
-                Arguments = args ?? Enumerable.Repeat<IValue>(Interpreter.NullInstance, NumOfArgs).ToList(),
+                Arguments = args ?? Enumerable.Repeat<IValue>(VM.NullInstance, NumOfArgs).ToList(),
                 Locals = new IValue[NumOfLocals]
             };
 
             if (args is not null && args.Count == 0)
-                env.Arguments = Enumerable.Repeat<IValue>(Interpreter.NullInstance, NumOfArgs).ToList();
+                env.Arguments = Enumerable.Repeat<IValue>(VM.NullInstance, NumOfArgs).ToList();
 
             for (int i = 0; i < NumOfLocals; i++)
-                env.Locals[i] = Interpreter.NullInstance;
+                env.Locals[i] = VM.NullInstance;
 
             // Setup the context
-            interpreter._instructions = Instructions;
-            interpreter.Environment = env;
-            interpreter.Module = ParentModule;
+            vm.PushContext(Instructions);
+            vm.Environment = env;
+            vm.Module = ParentModule;
         }
 
         public string AsString()

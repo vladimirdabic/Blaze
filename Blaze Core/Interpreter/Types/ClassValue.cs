@@ -41,7 +41,7 @@ namespace VD.Blaze.Interpreter.Types
             return $"<class {Name}>";
         }
 
-        public void New(Interpreter interpreter, IValue instance, List<IValue> args)
+        public void New(VM vm, IValue instance, List<IValue> args)
         {
             // do some base class initialization in the future
             var env = new ClassEnv(Closure, instance);
@@ -52,10 +52,12 @@ namespace VD.Blaze.Interpreter.Types
             cls_instance.Type = this;
 
             foreach (var member in InstanceMembers)
-                env.Members[member] = new ClassEnv.Variable(Interpreter.NullInstance);
+                env.Members[member] = new ClassEnv.Variable(VM.NullInstance);
+
 
             Constructor.Closure = env;
-            Constructor.Call(interpreter, args);
+            Constructor.Call(vm, args);
+            vm._inConstructor = true;
         }
 
         public IValue Copy()

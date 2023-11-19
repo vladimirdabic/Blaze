@@ -84,7 +84,7 @@ namespace VD.Blaze.Interpreter.Types
 
         private void DefineProperties()
         {
-            Properties["append"] = new BuiltinFunctionValue("list.append", (Interpreter itp, List<IValue> args) =>
+            Properties["append"] = new BuiltinFunctionValue("list.append", (VM itp, List<IValue> args) =>
             {
                 foreach(IValue value in args)
                     Values.Add(value);
@@ -92,7 +92,7 @@ namespace VD.Blaze.Interpreter.Types
                 return this;
             });
 
-            Properties["pop"] = new BuiltinFunctionValue("list.pop", (Interpreter itp, List<IValue> args) =>
+            Properties["pop"] = new BuiltinFunctionValue("list.pop", (VM itp, List<IValue> args) =>
             {
                 if (args.Count != 1)
                 {
@@ -117,6 +117,17 @@ namespace VD.Blaze.Interpreter.Types
                 }
 
                 throw new InterpreterInternalException("Expected number parameter for function list.pop");
+            });
+
+            Properties["contains"] = new BuiltinFunctionValue("list.contains", (VM itp, List<IValue> args) =>
+            {
+                if (args.Count != 1)
+                {
+                    throw new InterpreterInternalException("Expected object for function list.contains");
+                }
+
+                IValue arg = args[0];
+                return new BooleanValue(Values.Contains(arg));
             });
         }
 

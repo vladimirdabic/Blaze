@@ -55,7 +55,7 @@ namespace VD.Blaze.Interpreter.Environment
             {
                 // TODO: Error checking
                 string name = ((Constant.String)variable.Name).Value;
-                Variables[name] = new Variable(variable.Type, Interpreter.NullInstance, this);
+                Variables[name] = new Variable(variable.Type, VM.NullInstance, this);
             }
         }
 
@@ -97,14 +97,14 @@ namespace VD.Blaze.Interpreter.Environment
 
         public IVariable DefineVariable(string name, VariableType visibility, IValue value = null)
         {
-            Variable variable = new Variable(visibility, value ?? Interpreter.NullInstance, this);
+            Variable variable = new Variable(visibility, value ?? VM.NullInstance, this);
             Variables[name] = variable;
             return variable;
         }
 
         public override IVariable DefineVariable(string name, IValue value = null)
         {
-            Variable variable = new Variable(VariableType.PRIVATE, value ?? Interpreter.NullInstance, this);
+            Variable variable = new Variable(VariableType.PRIVATE, value ?? VM.NullInstance, this);
             Variables[name] = variable;
             return variable;
         }

@@ -16,7 +16,7 @@ namespace Blaze_Interpreter
         public static void CreateLibraries(ModuleEnv env)
         {
             // Define global print function
-            var print_func = new BuiltinFunctionValue("print", (Interpreter itp, List<IValue> args) =>
+            var print_func = new BuiltinFunctionValue("print", (VM vm, List<IValue> args) =>
             {
                 foreach (var arg in args)
                     Console.Write($"{arg.AsString()}");
@@ -32,7 +32,7 @@ namespace Blaze_Interpreter
             var module_lib = new Library("module");
             env.DefineVariable("module", VariableType.PUBLIC, module_lib);
 
-            module_lib.DefineFunction("load", (Interpreter itp, List<IValue> args) =>
+            module_lib.DefineFunction("load", (VM vm, List<IValue> args) =>
             {
                 if (args.Count == 0 || args[0] is not StringValue)
                     throw new InterpreterInternalException("Expected module name for function module.load");
@@ -44,13 +44,13 @@ namespace Blaze_Interpreter
                 BinaryReader reader = new BinaryReader(stream);
                 module.FromBinary(reader);
 
-                Interpreter interpreter = new Interpreter();
+                // VM interpreter = new VM();
 
                 // Load module file
-                ModuleEnv env = interpreter.LoadModule(module);
+                ModuleEnv env = VM.StaticLoadModule(module);
 
                 // Set its parent to be the current running module
-                env.SetParent(itp.Module);
+                env.SetParent(vm.Module);
 
                 return null;
             });

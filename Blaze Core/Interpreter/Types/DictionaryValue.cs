@@ -37,7 +37,7 @@ namespace VD.Blaze.Interpreter.Types
 
         public IValue GetAtIndex(IValue index)
         {
-            return Entries.ContainsKey(index) ? Entries[index] : Interpreter.NullInstance;
+            return Entries.ContainsKey(index) ? Entries[index] : VM.NullInstance;
         }
 
         public IteratorValue GetIterator()

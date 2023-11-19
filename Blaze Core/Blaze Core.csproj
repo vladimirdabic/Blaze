@@ -45,7 +45,7 @@
     <Compile Include="Interpreter\Environment\FuncEnv.cs" />
     <Compile Include="Interpreter\Environment\ModuleEnv.cs" />
     <Compile Include="Interpreter\ExecutionContext.cs" />
-    <Compile Include="Interpreter\Interpreter.cs" />
+    <Compile Include="Interpreter\VM.cs" />
     <Compile Include="Interpreter\Types\BooleanValue.cs" />
     <Compile Include="Interpreter\Types\BuiltinFunctionValue.cs" />
     <Compile Include="Interpreter\Types\ClassInstanceValue.cs" />
