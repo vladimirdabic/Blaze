@@ -133,7 +133,7 @@ namespace VD.Blaze.Module
             uint id = br.ReadUInt32();
 
             if (id != 0x6D7A6C62)
-                throw new Exception("File is not a Blaze module file");
+                throw new FileLoadException("File is not a Blaze module file");
 
             byte major = br.ReadByte();
             byte minor = br.ReadByte();

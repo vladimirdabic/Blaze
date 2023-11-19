@@ -63,27 +63,26 @@ namespace Blaze_Interpreter
                 return;
             }
 
-            // Load module
-            Module module = new Module();
+            try { 
+                // Load module
+                Module module = new Module();
 
-            MemoryStream stream = new MemoryStream(File.ReadAllBytes(moduleFileName));
-            BinaryReader reader = new BinaryReader(stream);
+                MemoryStream stream = new MemoryStream(File.ReadAllBytes(moduleFileName));
+                BinaryReader reader = new BinaryReader(stream);
 
-            module.FromBinary(reader);
+                module.FromBinary(reader);
 
-            if (dump)
-            {
-                module.PrintToConsole();
-                return;
-            }
+                if (dump)
+                {
+                    module.PrintToConsole();
+                    return;
+                }
 
-            // Setup vm and internal module
-            VM vm = new VM();
-            ModuleEnv internal_module = new ModuleEnv();
-            Utils.CreateLibraries(internal_module);
+                // Setup vm and internal module
+                VM vm = new VM();
+                ModuleEnv internal_module = new ModuleEnv();
 
-            try
-            {
+                Utils.CreateLibraries(internal_module);
                 // Load user module
                 ModuleEnv env = vm.LoadModule(module);
                 env.SetParent(internal_module);
@@ -105,6 +104,10 @@ namespace Blaze_Interpreter
                     Console.WriteLine($"[{e.Location.filename}] {e.Value.AsString()}");
                 else
                     Console.WriteLine($"[{e.Location.filename}:{e.Location.line}] {e.Value.AsString()}");
+            }
+            catch(FileLoadException e)
+            {
+                Console.WriteLine(e.Message);
             }
         }
     }
