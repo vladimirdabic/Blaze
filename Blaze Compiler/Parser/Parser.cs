@@ -126,7 +126,7 @@ namespace VD.Blaze.Parser
         private Statement.TopClassDef ParseClass(TokenType visibility)
         {
             Token name = Consume(TokenType.IDENTIFIER, "Expected class name after 'class'");
-            string parentName = Match(TokenType.COLON) ? (string)Consume(TokenType.IDENTIFIER, "Expected base class name").Value : null
+            string parentName = Match(TokenType.COLON) ? (string)Consume(TokenType.IDENTIFIER, "Expected base class name").Value : null;
 
             Consume(TokenType.OPEN_BRACE, "Expected class body");
 

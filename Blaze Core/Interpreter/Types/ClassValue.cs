@@ -43,10 +43,13 @@ namespace VD.Blaze.Interpreter.Types
 
         public void New(Interpreter interpreter, IValue instance, List<IValue> args)
         {
-            // do some base class initialization probably
-
+            // do some base class initialization in the future
             var env = new ClassEnv(Closure, instance);
-            ((ClassInstanceValue)instance).Properties = env;
+            
+            // Guaranteed to be a class instance value
+            var cls_instance = (ClassInstanceValue)instance;
+            cls_instance.Properties = env;
+            cls_instance.Type = this;
 
             foreach (var member in InstanceMembers)
                 env.Members[member] = new ClassEnv.Variable(Interpreter.NullInstance);

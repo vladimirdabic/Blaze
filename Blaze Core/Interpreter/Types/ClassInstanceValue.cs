@@ -12,6 +12,11 @@ namespace VD.Blaze.Interpreter.Types
         public ClassValue Type;
         public ClassEnv Properties;
 
+        public ClassInstanceValue(ClassValue classType)
+        {
+            Type = classType;
+        }
+
         public bool AsBoolean()
         {
             return true;

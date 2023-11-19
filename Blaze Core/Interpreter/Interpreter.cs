@@ -243,7 +243,7 @@ namespace VD.Blaze.Interpreter
 
                             List<IValue> args = new List<IValue>();
 
-                            var instance = new ClassInstanceValue();
+                            var instance = new ClassInstanceValue(null);
                             //Stack.Push(instance);
 
                             for (int i = 0; i < oparg; ++i)
