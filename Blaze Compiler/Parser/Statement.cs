@@ -25,7 +25,7 @@ namespace VD.Blaze.Parser
             void Visit(Throw throwStmt);
             void Visit(IfStatement ifStmt);
             void Visit(StaticStmt staticStmt);
-            void Visit(TopEventDef topEventDef);
+            void Visit(EventDef eventDef);
             void Visit(WhileStatement whileStmt);
             void Visit(ForStatement forStmt);
             void Visit(ForEachStatement forEachStmt);
@@ -111,19 +111,21 @@ namespace VD.Blaze.Parser
             }
         }
 
-        public class TopEventDef : Statement
+        public class EventDef : Statement
         {
             public TokenLocation Location;
             public Expression Event;
-            public List<(string name, List<Expression> values)> Args;
-            public Statement Body;
+            public List<(string name, Expression.ListValue values)> Args;
+            public List<Statement> Body;
+            public bool Static;
 
-            public TopEventDef(TokenLocation location, Expression _event, List<(string name, List<Expression> value)> args, Statement body)
+            public EventDef(TokenLocation location, Expression _event, List<(string name, Expression.ListValue value)> args, List<Statement> body, bool _static = false)
             {
                 Event = _event;
                 Location = location;
                 Args = args;
                 Body = body;
+                Static = _static;
             }
 
             public override void Accept(IVisitor visitor)
@@ -302,6 +304,7 @@ namespace VD.Blaze.Parser
 
             public override void Accept(IVisitor visitor)
             {
+                visitor.Visit(this);
                 visitor.Visit(this);
             }
         }

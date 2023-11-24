@@ -636,6 +636,7 @@ namespace VD.Blaze.Interpreter
                     break;
 
                 case Opcode.LDEVENT:
+                    Stack.Push(new EventValue(this));
                     break;
 
                 case Opcode.ITER:
@@ -645,10 +646,32 @@ namespace VD.Blaze.Interpreter
                         if (value is not IValueIterable)
                         {
                             Throw($"Object of type '{value.GetName()}' is not iterable");
+                            break;
                         }
 
                         IteratorValue iterator = ((IValueIterable)value).GetIterator();
                         Stack.Push(iterator);
+                    }
+                    break;
+
+                case Opcode.ATTACH:
+                    {
+                        IValue ev = Stack.Pop();
+                        IValue callback = Stack.Pop();
+
+                        if(ev is not IEvent)
+                        {
+                            Throw($"Cannot attach a callback to an object of type '{ev.GetName()}'");
+                            break;
+                        }
+
+                        if (callback is not IValueCallable)
+                        {
+                            Throw($"Cannot attach a non callable object ({callback.GetName()}) to an event");
+                            break;
+                        }
+
+                        ((IEvent)ev).Attach((IValueCallable)callback);
                     }
                     break;
 

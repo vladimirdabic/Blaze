@@ -81,8 +81,8 @@ namespace Blaze_Interpreter
                 // Setup vm and internal module
                 VM vm = new VM();
                 ModuleEnv internal_module = new ModuleEnv();
-
                 Utils.CreateLibraries(internal_module);
+
                 // Load user module
                 ModuleEnv env = vm.LoadModule(module);
                 env.SetParent(internal_module);

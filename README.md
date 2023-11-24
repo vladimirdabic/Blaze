@@ -98,7 +98,7 @@ event UserEvent.Connect(["vladimirdabic", "doofusjack"]) {
 This is just syntactic sugar for
 ```
 event UserEvent.Connect(username) {
-  if(username != "vladimirdabic" && username != "doofusjack") return;
+  if(!(["vladimirdabic", "doofusjack"].contains(username))) return;
 
   print("Specific user connected");
 }

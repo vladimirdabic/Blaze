@@ -58,6 +58,10 @@ namespace VD.Blaze.Interpreter.Types
             if (args is not null && args.Count == 0)
                 env.Arguments = Enumerable.Repeat<IValue>(VM.NullInstance, NumOfArgs).ToList();
 
+            // extend args
+            while(env.Arguments.Count < NumOfArgs)
+                env.Arguments.Add(VM.NullInstance);
+            
             for (int i = 0; i < NumOfLocals; i++)
                 env.Locals[i] = VM.NullInstance;
 

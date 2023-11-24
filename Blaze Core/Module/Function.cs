@@ -185,7 +185,7 @@ namespace VD.Blaze.Module
         DUP, VARARGS,
 
         LDLIST, LDOBJ, LDINDEX, STINDEX, LDPROP, STPROP,
-        LDEVENT, ITER, NEW,
+        LDEVENT, ITER, NEW, ATTACH,
     }
 
     public class Instruction

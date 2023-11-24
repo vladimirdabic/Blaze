@@ -10,7 +10,7 @@ using System.Runtime.Remoting.Activation;
 using VD.Blaze.Generator.Environment;
 using static VD.Blaze.Generator.Environment.BaseEnv;
 using System.Xml.Linq;
-
+using System.Diagnostics.Tracing;
 
 namespace VD.Blaze.Generator
 {
@@ -478,7 +478,7 @@ namespace VD.Blaze.Generator
         public void Visit(Statement.StaticStmt staticStmt)
         {
             // Static function
-            EnterFunction(_module.Functions[0]);
+            EnterFunction(_module.GetStaticFunction());
             Evaluate(staticStmt.Stmt);
             LeaveFunction();
         }
@@ -497,11 +497,6 @@ namespace VD.Blaze.Generator
             }
 
             _function.Emit(Opcode.LDLIST, (byte)listValue.Values.Count);
-        }
-
-        public void Visit(Statement.TopEventDef topEventDef)
-        {
-            throw new NotImplementedException();
         }
 
         public void Visit(Expression.GetIndex getIndex)
@@ -793,6 +788,72 @@ namespace VD.Blaze.Generator
 
             if (singleOpWrapper.SuffixDup)
                 _function.Emit(Opcode.DUP);
+        }
+
+        public void Visit(Statement.EventDef eventDef)
+        {
+            if(eventDef.Static)
+                EnterFunction(_module.GetStaticFunction());
+
+
+            // Generate callback function
+
+            Function callback = _module.CreateAnonymousFunction(eventDef.Args.Count);
+            int funcval_line = _line;
+            EnterFunction(callback);
+
+            // Generate checking
+            for (int i = 0; i < eventDef.Args.Count; i++)
+            {
+                var arg = eventDef.Args[i];
+                if(arg.name is not null)
+                    ((FuncEnv)_env).Arguments[eventDef.Args[i].name] = i;
+
+                if(arg.values is not null)
+                {
+                    _function.Emit(Opcode.LDARG, i);
+                    Evaluate(arg.values);
+                    Constant contains_const = _module.AddConstant(new Constant.String("contains"));
+                    _function.Emit(Opcode.LDPROP, contains_const);
+                    _function.Emit(Opcode.CALL, 1);
+                    
+                    _function.Emit(Opcode.JMPT, 3);
+                    _function.Emit(Opcode.LDNULL);
+                    _function.Emit(Opcode.RET);
+                }
+            }
+
+            bool ret = false;
+            foreach (var stmt in eventDef.Body)
+            {
+                Evaluate(stmt);
+
+                if (stmt is Statement.Return)
+                {
+                    ret = true;
+                    break;
+                }
+            }
+
+            // in case its an empty function, because the checks jump to an instruction which doesn't exist if there's no return
+            if(!ret)
+            {
+                _function.Emit(Opcode.LDNULL);
+                _function.Emit(Opcode.RET);
+            }
+
+            LeaveFunction();
+            _line = funcval_line;
+            _module.CurrentLine = funcval_line;
+
+            // Generate attach
+            _function.Emit(Opcode.LDFUNC, callback);
+            Evaluate(eventDef.Event);
+            _function.Emit(Opcode.ATTACH);
+
+
+            if (eventDef.Static)
+                LeaveFunction();
         }
     }
 

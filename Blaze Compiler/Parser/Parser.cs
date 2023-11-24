@@ -120,6 +120,11 @@ namespace VD.Blaze.Parser
                 return new Statement.StaticStmt(stmt);
             }
 
+            if(Match(TokenType.EVENT))
+            {
+                return ParseEvent(true);
+            }
+
             throw new ParserException(Peek().Location.Source, Peek().Location.Line, "Expected a declaration");
         }
 
@@ -158,6 +163,52 @@ namespace VD.Blaze.Parser
             Consume(TokenType.CLOSE_BRACE, "Expected '}' to close class body");
 
             return new Statement.TopClassDef(name, parentName, members, constructor, funcs, visibility);
+        }
+
+        private Statement.EventDef ParseEvent(bool is_static = false)
+        {
+            Token loc = Prev();
+            Expression event_expr = ParseIndex();
+            var event_args = new List<(string, Expression.ListValue)>();
+
+            if (Match(TokenType.OPEN_PAREN))
+            {
+                if (!Check(TokenType.CLOSE_PAREN))
+                {
+                    do
+                    {
+                        Token pos = Peek();
+                        Expression.ListValue exprs = null;
+                        string arg_name = Match(TokenType.IDENTIFIER) ? (string)Prev().Value : null;
+
+                        if (Match(TokenType.OPEN_SQUARE))
+                            exprs = ParseList();
+
+                        if (arg_name is null && exprs is null)
+                            throw new ParserException(pos.Location.Source, pos.Location.Line, "Event argument must be a name or a list of allowed values");
+
+                        event_args.Add((arg_name, exprs));
+
+                    } while (Match(TokenType.COMMA));
+                }
+
+                Consume(TokenType.CLOSE_PAREN, "Expected ')' after func arguments");
+            }
+
+            Consume(TokenType.OPEN_BRACE, "Expected event body");
+            var body = new List<Statement>();
+
+            while (Available() && !Check(TokenType.CLOSE_BRACE))
+            {
+                int line = Peek().Location.Line;
+                Statement stmt = ParseStatement();
+                stmt.Line = line;
+                body.Add(stmt);
+            }
+
+            Consume(TokenType.CLOSE_BRACE, "Expected '}' to close event body");
+
+            return new Statement.EventDef(loc.Location, event_expr, event_args, body, is_static);
         }
 
         private Statement ParseStatement()
@@ -270,48 +321,7 @@ namespace VD.Blaze.Parser
 
             if (Match(TokenType.EVENT))
             {
-                Token loc = Prev();
-                Expression event_expr = ParseIndex();
-                var event_args = new List<(string, List<Expression>)>();
-
-                if (Match(TokenType.OPEN_PAREN))
-                {
-                    if (!Check(TokenType.CLOSE_PAREN))
-                    {
-                        do
-                        {
-                            Token pos = Peek();
-                            List<Expression> exprarg = null;
-                            string arg_name = Match(TokenType.IDENTIFIER) ? (string)Prev().Value : null;
-
-                            if(Match(TokenType.OPEN_SQUARE))
-                            {
-                                exprarg = new List<Expression>();
-                                
-                                while (true)
-                                {
-                                    exprarg.Add(ParseExpression());
-                                    if (Check(TokenType.CLOSE_SQUARE) || !Available()) break;
-                                    Consume(TokenType.COMMA, "Expected ',' after event parameter value");
-                                }
-
-                                Consume(TokenType.CLOSE_SQUARE, "Expected ']' after event parameter values");
-                            }
-
-                            if(arg_name is null && exprarg is null)
-                                throw new ParserException(pos.Location.Source, pos.Location.Line, "Event argument must be a name or a list of allowed values");
-
-                            event_args.Add((arg_name, exprarg));
-
-                        } while (Match(TokenType.COMMA));
-                    }
-
-                    Consume(TokenType.CLOSE_PAREN, "Expected ')' after func arguments");
-                }
-
-                Statement body = ParseStatement();
-
-                return new Statement.TopEventDef(loc.Location, event_expr, event_args, body);
+                return ParseEvent();
             }
 
             Expression expr = ParseExpression();
@@ -509,21 +519,7 @@ namespace VD.Blaze.Parser
 
             if (Match(TokenType.OPEN_SQUARE))
             {
-                List<Expression> exprs = new List<Expression>();
-
-                if (!Check(TokenType.CLOSE_SQUARE))
-                {
-                    while (true)
-                    {
-                        exprs.Add(ParseExpression());
-                        if (Check(TokenType.CLOSE_SQUARE) || !Available()) break;
-                        Consume(TokenType.COMMA, "Expected ',' after list value");
-                    }
-                }
-
-                Consume(TokenType.CLOSE_SQUARE, "Expected ']' after list values");
-
-                return new Expression.ListValue(exprs);
+                return ParseList();
             }
 
             if (Match(TokenType.OPEN_BRACE))
@@ -558,6 +554,24 @@ namespace VD.Blaze.Parser
             throw new ParserException(Peek().Location.Source, Peek().Location.Line, "Expected an expression");
         }
 
+        private Expression.ListValue ParseList()
+        {
+            List<Expression> exprs = new List<Expression>();
+
+            if (!Check(TokenType.CLOSE_SQUARE))
+            {
+                while (true)
+                {
+                    exprs.Add(ParseExpression());
+                    if (Check(TokenType.CLOSE_SQUARE) || !Available()) break;
+                    Consume(TokenType.COMMA, "Expected ',' after list value");
+                }
+            }
+
+            Consume(TokenType.CLOSE_SQUARE, "Expected ']' after list values");
+
+            return new Expression.ListValue(exprs);
+        }
         private Expression ParseIndex()
         {
             Expression left = ParsePrimary();

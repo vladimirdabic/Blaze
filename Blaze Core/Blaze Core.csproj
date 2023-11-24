@@ -45,6 +45,8 @@
     <Compile Include="Interpreter\Environment\FuncEnv.cs" />
     <Compile Include="Interpreter\Environment\ModuleEnv.cs" />
     <Compile Include="Interpreter\ExecutionContext.cs" />
+    <Compile Include="Interpreter\IEvent.cs" />
+    <Compile Include="Interpreter\Types\EventValue.cs" />
     <Compile Include="Interpreter\VM.cs" />
     <Compile Include="Interpreter\Types\BooleanValue.cs" />
     <Compile Include="Interpreter\Types\BuiltinFunctionValue.cs" />
