@@ -44,7 +44,7 @@ namespace VD.Blaze.Interpreter
         public ModuleEnv LoadModule(Module.Module module, ModuleEnv parent = null)
         {
             ModuleEnv env = new ModuleEnv(module, parent);
-            FunctionValue staticFunc = new FunctionValue(env.Module.Functions[0], env, env);
+            FunctionValue staticFunc = new FunctionValue(env.Module.GetStaticFunction(), env, env);
 
             staticFunc.Call(this, null);
 
@@ -65,7 +65,7 @@ namespace VD.Blaze.Interpreter
             VM vm = new VM();
 
             ModuleEnv env = new ModuleEnv(module, parent);
-            FunctionValue staticFunc = new FunctionValue(env.Module.Functions[0], env, env);
+            FunctionValue staticFunc = new FunctionValue(env.Module.GetStaticFunction(), env, env);
 
             vm.RunFunction(staticFunc, null);
 
@@ -121,6 +121,11 @@ namespace VD.Blaze.Interpreter
             Opcode opcode = _instructions[_current].Opcode;
 
             _current++;
+
+/*            Console.WriteLine($"{opcode} {opargi} STACK: ");
+            foreach(var v in Stack.ToArray())
+                Console.WriteLine(v.AsString());
+            Console.Write("\n");*/
 
             switch (opcode)
             {

@@ -9,12 +9,12 @@ namespace VD.Blaze.Interpreter.Types
     public class EventValue : IValue, IValueCallable, IEvent
     {
         public List<IValueCallable> Callbacks;
-        public VM VM;
+        public VM ParentVM;
 
         public EventValue(VM vm)
         {
             Callbacks = new List<IValueCallable>();
-            VM = vm;
+            ParentVM = vm;
         }
 
         public bool AsBoolean()
@@ -36,12 +36,12 @@ namespace VD.Blaze.Interpreter.Types
         {
             for(int i = Callbacks.Count - 1; i >= 0; i--)
             {
-                Callbacks[i].Call(VM, args);
+                Callbacks[i].Call(vm, args);
+
+                // Only leave the returned value from the callback
+                vm._inConstructor = i != Callbacks.Count - 1;
             }
 
-            // If the VM is not running, run it
-            if (VM.Done)
-                VM.Execute();
         }
 
         public IValue Copy()
@@ -61,7 +61,11 @@ namespace VD.Blaze.Interpreter.Types
 
         public void Raise(List<IValue> args)
         {
-            Call(VM, args);
+            Call(ParentVM, args);
+
+            // If the VM is not running, run it
+            if (ParentVM.Done)
+                ParentVM.Execute();
         }
     }
 }
