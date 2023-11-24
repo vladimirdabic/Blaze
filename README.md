@@ -63,10 +63,8 @@ Blaze currently supports:
 - Classes
 - Lists
 - Dictionaries
-- All of the expected control flow (if, while, for)
-
-Planned features:
 - Events
+- All of the expected control flow (if, while, for)
 
 ## Events
 As Blaze is an embeddable language, it has to have some kind of event system.\
