@@ -68,7 +68,7 @@ Blaze currently supports:
 Planned features:
 - Events
 
-## Events (to be added)
+## Events
 As Blaze is an embeddable language, it has to have some kind of event system.\
 The host application might expose an event to which you can attach a callback.
 ```
