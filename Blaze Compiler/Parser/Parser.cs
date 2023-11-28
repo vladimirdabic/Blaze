@@ -236,7 +236,10 @@ namespace VD.Blaze.Parser
 
                 while (Available() && !Check(TokenType.CLOSE_BRACE))
                 {
-                    body.Add(ParseStatement());
+                    int line = Peek().Location.Line;
+                    Statement stmt = ParseStatement();
+                    stmt.Line = line;
+                    body.Add(stmt);
                 }
 
                 Consume(TokenType.CLOSE_BRACE, "Expected '}' after statement block");

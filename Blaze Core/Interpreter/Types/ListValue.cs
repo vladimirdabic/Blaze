@@ -123,7 +123,7 @@ namespace VD.Blaze.Interpreter.Types
             {
                 if (args.Count != 1)
                 {
-                    throw new InterpreterInternalException("Expected object for function list.contains");
+                    throw new InterpreterInternalException("Expected object parameter for function list.contains");
                 }
 
                 IValue arg = args[0];

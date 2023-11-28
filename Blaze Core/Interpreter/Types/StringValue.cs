@@ -33,15 +33,15 @@ namespace VD.Blaze.Interpreter.Types
 
         public override bool Equals(object obj)
         {
-            if(obj is  StringValue otherStr)
+            if(obj is StringValue otherStr)
                 return Value == otherStr.Value;
 
-            return false;
+            return base.Equals(obj);
         }
 
         public override int GetHashCode()
         {
-            return base.GetHashCode();
+            return Value.GetHashCode();
         }
 
         public string GetName()

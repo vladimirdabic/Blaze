@@ -45,7 +45,7 @@ namespace VD.Blaze.Interpreter.Types
 
         public override int GetHashCode()
         {
-            return base.GetHashCode();
+            return Value.GetHashCode();
         }
 
         public string GetName()
