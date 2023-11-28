@@ -24,10 +24,10 @@ Options:
 
 ## Example
 ```
-extern var print;
+extern var console;
 
 func main() {
-    print("Hello World");
+    console.print("Hello World");
 }
 ```
 ```
@@ -72,14 +72,14 @@ The host application might expose an event to which you can attach a callback.
 ```
 // here the application exposes an object that holds multiple events
 extern var UserEvent;
-extern var print;
+extern var console;
 
 event UserEvent.Connect(username) {
-  print(username, " connected");
+    console.print(username, " connected");
 }
 
 event UserEvent.Disconnect(username) {
-  print(username, " disconnected");
+    console.print(username, " disconnected");
 }
 ```
 You can attach multiple callbacks to an event, obviously.
@@ -89,15 +89,15 @@ If the parameter is not one of these, the callback won't execute.
 
 ```
 event UserEvent.Connect(["vladimirdabic", "doofusjack"]) {
-  print("Specific user connected");
+    console.print("Specific user connected");
 }
 ```
 
 This is just syntactic sugar for
 ```
 event UserEvent.Connect(username) {
-  if(!(["vladimirdabic", "doofusjack"].contains(username))) return;
+    if(!(["vladimirdabic", "doofusjack"].contains(username))) return;
 
-  print("Specific user connected");
+    console.print("Specific user connected");
 }
 ```
