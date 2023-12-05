@@ -98,8 +98,6 @@ namespace Blaze_Compiler
             {
                 Console.WriteLine($"[{e.Source}:{e.Line}] {e.Message}");
             }
-
-            Console.ReadKey();
         }
     }
 }

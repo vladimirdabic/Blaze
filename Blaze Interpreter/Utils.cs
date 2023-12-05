@@ -116,7 +116,7 @@ namespace Blaze_Interpreter
                 // Set its parent to be the current running module
                 env.SetParent(vm.Module);
 
-                return null;
+                return new ModuleValue(env);
             });
         }
     }
