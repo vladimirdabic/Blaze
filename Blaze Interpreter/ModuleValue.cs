@@ -45,7 +45,7 @@ namespace Blaze_Interpreter
 
         public IValue GetProperty(string name)
         {
-            switch(name)
+            switch (name)
             {
                 case "unload":
                     return new BuiltinFunctionValue("module.unload", (VM vm, List<IValue> args) =>
@@ -54,7 +54,7 @@ namespace Blaze_Interpreter
                             throw new InterpreterInternalException("Module is already unloaded");
 
                         ((ModuleEnv)Module.Parent).Children.Remove(Module);
-                        Module.SetParent(null);
+                        Module.Parent = null;
                         Module = null;
 
                         return null;
@@ -71,6 +71,9 @@ namespace Blaze_Interpreter
 
                         IVariable mod_var = Module.GetVariable(((StringValue)args[0]).Value);
 
+                        if (mod_var is null)
+                            return null;
+
                         return mod_var.GetValue();
                     });
 
@@ -84,11 +87,18 @@ namespace Blaze_Interpreter
                             throw new InterpreterInternalException("Expected variable name and value for module.set");
 
                         IVariable mod_var = Module.GetVariable(((StringValue)args[0]).Value);
+
+                        if (mod_var is null)
+                            return null;
+
                         IValue old_value = mod_var.GetValue();
                         mod_var.SetValue(args[1]);
 
                         return old_value;
                     });
+
+                default:
+                    break;
             }
 
             throw new PropertyNotFound();
