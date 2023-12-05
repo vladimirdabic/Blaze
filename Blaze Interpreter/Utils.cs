@@ -105,18 +105,29 @@ namespace Blaze_Interpreter
 
                 var mod_name = ((StringValue)args[0]).Value;
 
-                Module module = new Module();
-                MemoryStream stream = new MemoryStream(File.ReadAllBytes(mod_name));
-                BinaryReader reader = new BinaryReader(stream);
-                module.FromBinary(reader);
+                try
+                {
+                    Module module = new Module();
+                    MemoryStream stream = new MemoryStream(File.ReadAllBytes(mod_name));
+                    BinaryReader reader = new BinaryReader(stream);
+                    module.FromBinary(reader);
 
-                // Load module file
-                ModuleEnv env = VM.StaticLoadModule(module);
+                    // Load module file
+                    ModuleEnv env = VM.StaticLoadModule(module);
 
-                // Set its parent to be the current running module
-                env.SetParent(vm.Module);
+                    // Set its parent to be the current running module
+                    env.SetParent(vm.Module);
 
-                return new ModuleValue(env);
+                    return new ModuleValue(env);
+                } 
+                catch(FileNotFoundException)
+                {
+                    return null;
+                }
+                catch (IOException)
+                {
+                    return null;
+                }
             });
         }
     }
