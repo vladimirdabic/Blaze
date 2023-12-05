@@ -327,6 +327,18 @@ namespace VD.Blaze.Parser
                 return ParseEvent();
             }
 
+            if (Match(TokenType.BREAK))
+            {
+                Consume(TokenType.SEMICOLON, "Expected ';' after break statement");
+                return new Statement.Break();
+            }
+
+            if (Match(TokenType.CONTINUE))
+            {
+                Consume(TokenType.SEMICOLON, "Expected ';' after continue statement");
+                return new Statement.Continue();
+            }
+
             Expression expr = ParseExpression();
 
             // Only allow Assignments and Function Calls

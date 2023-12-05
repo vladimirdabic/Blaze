@@ -30,6 +30,8 @@ namespace VD.Blaze.Parser
             void Visit(ForStatement forStmt);
             void Visit(ForEachStatement forEachStmt);
             void Visit(TopClassDef topClassDef);
+            void Visit(Break breakStmt);
+            void Visit(Continue continueStmt);
         }
 
         public abstract void Accept(IVisitor visitor);
@@ -305,7 +307,6 @@ namespace VD.Blaze.Parser
             public override void Accept(IVisitor visitor)
             {
                 visitor.Visit(this);
-                visitor.Visit(this);
             }
         }
 
@@ -328,6 +329,22 @@ namespace VD.Blaze.Parser
                 ParentName = parentName;
             }
 
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.Visit(this);
+            }
+        }
+
+        public class Break : Statement
+        {
+            public override void Accept(IVisitor visitor)
+            {
+                visitor.Visit(this);
+            }
+        }
+
+        public class Continue : Statement
+        {
             public override void Accept(IVisitor visitor)
             {
                 visitor.Visit(this);

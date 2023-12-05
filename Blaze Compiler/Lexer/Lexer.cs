@@ -20,6 +20,7 @@ namespace VD.Blaze.Lexer
             { "while", TokenType.WHILE },
             { "for", TokenType.FOR },
             { "break", TokenType.BREAK },
+            { "continue", TokenType.CONTINUE },
             { "return", TokenType.RETURN },
             { "var", TokenType.VAR },
             { "func", TokenType.FUNC },

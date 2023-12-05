@@ -36,15 +36,15 @@ func main() {
 > .\blzi.exe -m hw.blzm
   Hello World
 ```
-This is a simple hello world program. Notice that we have to specify that the print variable is external.\
+This is a simple hello world program. Notice that we have to specify that the console variable is external.\
 Blaze doesn't have a concept of a *global environment* like most embeddable/scripting languages do.
 
 Blaze works with **_modules_**.\
 Each Blaze source file is compiled to a *module*, which contains functions, classes and variables.\
 Variables can be declared as public, private or extern.
 
-The print function is provided from an internal module in the interpreter.\
-That might sound like a global environment, but unless you specify that print is *extern* the interpreter won't be able to see it.
+The console interface is provided from an internal module in the interpreter.\
+That might sound like a global environment, but unless you specify that console is *extern* the interpreter won't be able to see it.
 
 During runtime each module can have multiple children and a parent which make up a hierarchy.
 

@@ -11,6 +11,8 @@ using VD.Blaze.Generator.Environment;
 using static VD.Blaze.Generator.Environment.BaseEnv;
 using System.Xml.Linq;
 using System.Diagnostics.Tracing;
+using System.Runtime.Remoting.Contexts;
+
 
 namespace VD.Blaze.Generator
 {
@@ -19,17 +21,21 @@ namespace VD.Blaze.Generator
         private Module.Module _module;
         private readonly Dictionary<string, Variable> _variables;
 
-        private Stack<Function> _functionStack;
+        // private Stack<Function> _functionStack;
+        private Stack<Context> _contexts;
         private Function _function;
+        private Context _context;
         private string _source;
         private int _line;
+
 
         // private LocalEnvironment _localEnv;
         private BaseEnv _env;
 
         public Generator()
         {
-            _functionStack = new Stack<Function>();
+            // _functionStack = new Stack<Function>();
+            _contexts = new Stack<Context>();
             _variables = new Dictionary<string, Variable>();
         }
 
@@ -38,7 +44,7 @@ namespace VD.Blaze.Generator
             _module = new Module.Module();
             _module.Name = source;
             _module.Debug = debug;
-            _functionStack.Clear();
+            _contexts.Clear();
             _variables.Clear();
             _function = null;
             _env = null;
@@ -96,11 +102,12 @@ namespace VD.Blaze.Generator
                 case TokenType.EXTERN: visibility = VariableType.EXTERNAL; break;
             }
 
-            if(_function is not null)
-                _functionStack.Push(_function);
+            if(_context is not null)
+                _contexts.Push(_context);
 
             // Setup function and local env
             _function = _module.CreateFunction(topFuncDef.Name, topFuncDef.Args.Count, visibility);
+            _context = new Context(_function);
             // _functions[topFuncDef.Name] = _function;
             _env = new FuncEnv(_env);
             
@@ -121,8 +128,11 @@ namespace VD.Blaze.Generator
                 if (stmt is Statement.Return) break;
             }
 
-            if(_functionStack.Count != 0)
-                _function = _functionStack.Pop();
+            if(_contexts.Count != 0)
+            {
+                _context = _contexts.Pop();
+                _function = _context.Function;
+            }
 
             _env = _env.Parent;
         }
@@ -432,12 +442,13 @@ namespace VD.Blaze.Generator
 
         public void Visit(Expression.FuncValue funcValue)
         {
-            if (_function is not null)
-                _functionStack.Push(_function);
+            if (_context is not null)
+                _contexts.Push(_context);
 
             // Setup function and local env
             Function function = _module.CreateAnonymousFunction(funcValue.Args.Count);
             _function = function;
+            _context = new Context(function);
             _env = new FuncEnv(_env);
             int funcval_line = _line;
 
@@ -455,8 +466,11 @@ namespace VD.Blaze.Generator
                 if (stmt is Statement.Return) break;
             }
 
-            if (_functionStack.Count != 0)
-                _function = _functionStack.Pop();
+            if (_contexts.Count != 0)
+            {
+                _context = _contexts.Pop();
+                _function = _context.Function;
+            }
 
             _env = _env.Parent;
 
@@ -544,10 +558,15 @@ namespace VD.Blaze.Generator
             int jmpIdx = _function.Instructions.Count;
             _function.Emit(Opcode.JMPF, 0);
 
+            _context.LoopContexts.Push(new LoopContext(conditionIdx));
+
             Evaluate(whileStmt.Body);
             _function.Emit(Opcode.JMPB, _function.Instructions.Count - conditionIdx);
 
             _function.Instructions[jmpIdx].Argument = (uint)(_function.Instructions.Count - jmpIdx);
+
+            // resolve breaks
+            _context.LoopContexts.Pop().Resolve(_function.Instructions.Count + 1);
         }
 
         public void Visit(Statement.ForStatement forStmt)
@@ -561,12 +580,17 @@ namespace VD.Blaze.Generator
             int jmpIdx = _function.Instructions.Count;
             _function.Emit(Opcode.JMPF, 0);
 
+            _context.LoopContexts.Push(new LoopContext(conditionIdx));
+
             Evaluate(forStmt.Body);
             Evaluate(forStmt.Increment);
             _function.Emit(Opcode.JMPB, _function.Instructions.Count - conditionIdx);
 
             _function.Instructions[jmpIdx].Argument = (uint)(_function.Instructions.Count - jmpIdx);
             _env.PopFrame();
+
+            // resolve breaks
+            _context.LoopContexts.Pop().Resolve(_function.Instructions.Count + 1);
         }
 
         public void Visit(Expression.DictValue dictValue)
@@ -610,12 +634,18 @@ namespace VD.Blaze.Generator
             _function.Emit(Opcode.DUP);
             _function.Emit(Opcode.LDPROP, next_prop);
             _function.Emit(Opcode.STLOCAL, iterator_variable);
+
+            _context.LoopContexts.Push(new LoopContext(cond_idx));
+            
             Evaluate(forEachStmt.Body);
             _function.Emit(Opcode.JMPB, _function.Instructions.Count - cond_idx);
 
             _function.Instructions[jmpf_idx].Argument = (uint)(_function.Instructions.Count - jmpf_idx);
 
             _env.PopFrame();
+
+            // resolve breaks
+            _context.LoopContexts.Pop().Resolve(_function.Instructions.Count + 1);
         }
 
         public void Visit(Statement.TopClassDef topClassDef)
@@ -702,18 +732,22 @@ namespace VD.Blaze.Generator
 
         private void EnterFunction(Function function)
         {
-            if (_function is not null)
-                _functionStack.Push(_function);
+            if (_context is not null)
+                _contexts.Push(_context);
 
             // Setup function and local env
             _function = function;
+            _context = new Context(function);
             _env = new FuncEnv(_env);
         }
 
         private void LeaveFunction()
         {
-            if (_functionStack.Count != 0)
-                _function = _functionStack.Pop();
+            if (_contexts.Count != 0)
+            {
+                _context = _contexts.Pop();
+                _function = _context.Function;
+            }
 
             _env = _env.Parent;
         }
@@ -854,6 +888,23 @@ namespace VD.Blaze.Generator
 
             if (eventDef.Static)
                 LeaveFunction();
+        }
+
+        public void Visit(Statement.Break breakStmt)
+        {
+            if(_context.LoopContexts.Count == 0)
+                throw new GeneratorException(_source, _line, $"Cannot use break outside a loop");
+
+            Instruction inst = _function.Emit(Opcode.JMP, _function.Instructions.Count + 1);
+            _context.LoopContexts.Peek().ToBeResolved.Add(inst);
+        }
+
+        public void Visit(Statement.Continue continueStmt)
+        {
+            if (_context.LoopContexts.Count == 0)
+                throw new GeneratorException(_source, _line, $"Cannot use continue outside a loop");
+
+            _function.Emit(Opcode.JMPB, _function.Instructions.Count - _context.LoopContexts.Peek().Start);
         }
     }
 
