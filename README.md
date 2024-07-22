@@ -14,6 +14,7 @@ Documentation (in Serbian): [PDF](https://drive.google.com/file/d/1I4bpM7I9xLVZh
 Usage: blzc.exe [options]
 Options:
     -s [file]       Blaze source file to compile
+    -m [name]       Use a custom module name
     -d              Compiles as a debug module
 
 Usage: blzi.exe [options]
