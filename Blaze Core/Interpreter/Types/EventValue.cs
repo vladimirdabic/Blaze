@@ -61,6 +61,8 @@ namespace VD.Blaze.Interpreter.Types
 
         public void Raise(List<IValue> args)
         {
+            if (Callbacks.Count == 0) return;
+
             Call(ParentVM, args);
 
             // If the VM is not running, run it
