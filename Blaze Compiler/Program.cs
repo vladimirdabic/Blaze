@@ -20,6 +20,7 @@ namespace Blaze_Compiler
             var argIt = new ArgumentIterator(args);
 
             string source_file = null;
+            string module_name = null;
             bool debug = false;
 
             while (argIt.Available())
@@ -42,6 +43,17 @@ namespace Blaze_Compiler
                         debug = true;
                         break;
 
+                    case "-m":
+                        module_name = argIt.Next();
+
+                        if(module_name is null)
+                        {
+                            Console.WriteLine($"Expected module name after '-m'");
+                            return;
+                        }
+
+                        break;
+
                     default:
                         Console.WriteLine($"Unknown argument '{arg}'");
                         return;
@@ -53,6 +65,7 @@ namespace Blaze_Compiler
                 Console.WriteLine($"Usage: {AppDomain.CurrentDomain.FriendlyName} [options]");
                 Console.WriteLine($"Options:");
                 Console.WriteLine($"    -s [file]       Blaze source file to compile");
+                Console.WriteLine($"    -m [name]       Use a custom module name");
                 Console.WriteLine($"    -d              Compiles as a debug module");
                 return;
             }
@@ -74,7 +87,7 @@ namespace Blaze_Compiler
 
                 var tokens = lexer.Lex(program, source_file);
                 var tree = parser.Parse(tokens);
-                Module module = generator.Generate(tree, source_file, debug);
+                Module module = generator.Generate(tree, source_file, debug, module_name);
 
                 var module_file_name = Path.GetFileNameWithoutExtension(source_file) + ".blzm";
 
