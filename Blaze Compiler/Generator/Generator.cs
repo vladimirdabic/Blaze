@@ -39,11 +39,14 @@ namespace VD.Blaze.Generator
             _variables = new Dictionary<string, Variable>();
         }
 
-        public Module.Module Generate(Statement statement, string source, bool debug = false)
+        public Module.Module Generate(Statement statement, string source, bool debug = false, string module_name = null)
         {
-            _module = new Module.Module();
-            _module.Name = source;
-            _module.Debug = debug;
+            _module = new Module.Module
+            {
+                Name = module_name is null ? source : module_name,
+                Debug = debug
+            };
+
             _contexts.Clear();
             _variables.Clear();
             _function = null;
