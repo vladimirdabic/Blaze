@@ -65,6 +65,7 @@ namespace VD.Blaze.Lexer
         FUNC, CLASS, VAR, PRIVATE, PUBLIC, EXTERN,
         TRUE, FALSE, NULL,
         TRY, CATCH, THROW, STATIC, EVENT, NEW,
+        IMPORT, EXPORT,
 
         // End of file
         EOF

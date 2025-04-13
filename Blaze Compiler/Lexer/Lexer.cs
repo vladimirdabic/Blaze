@@ -37,6 +37,8 @@ namespace VD.Blaze.Lexer
             { "static", TokenType.STATIC },
             { "event", TokenType.EVENT },
             { "new", TokenType.NEW },
+            { "import", TokenType.IMPORT },
+            { "export", TokenType.EXPORT },
         };
 
 

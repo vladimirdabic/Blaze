@@ -73,7 +73,25 @@ namespace VD.Blaze.Parser
                 return new Statement.TopVariableDef(visibility, name.Location, (string)name.Value, value);
             }
 
-            if(Match(TokenType.FUNC))
+            if(Match(TokenType.IMPORT))
+            {
+                Token name = Consume(TokenType.IDENTIFIER, "Expected variable name after 'import'");
+                Expression value = Match(TokenType.EQUALS) ? ParseExpression() : null;
+                Consume(TokenType.SEMICOLON, "Expected ';' after import statement");
+
+                return new Statement.TopVariableDef(TokenType.EXTERN, name.Location, (string)name.Value, value);
+            }
+
+            if (Match(TokenType.EXPORT))
+            {
+                Token name = Consume(TokenType.IDENTIFIER, "Expected variable name after 'export'");
+                Expression value = Match(TokenType.EQUALS) ? ParseExpression() : null;
+                Consume(TokenType.SEMICOLON, "Expected ';' after export statement");
+
+                return new Statement.TopVariableDef(TokenType.PUBLIC, name.Location, (string)name.Value, value);
+            }
+
+            if (Match(TokenType.FUNC))
             {
                 Token name = Consume(TokenType.IDENTIFIER, "Expected function name after 'func'");
                 Consume(TokenType.OPEN_PAREN, "Expected function arguments after func name");
