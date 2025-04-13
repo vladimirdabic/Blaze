@@ -22,6 +22,7 @@ namespace Blaze_Compiler
             string source_file = null;
             string module_name = null;
             bool debug = false;
+            bool dump = false;
 
             while (argIt.Available())
             {
@@ -54,6 +55,10 @@ namespace Blaze_Compiler
 
                         break;
 
+                    case "-c":
+                        dump = true;
+                        break;
+
                     default:
                         Console.WriteLine($"Unknown argument '{arg}'");
                         return;
@@ -67,6 +72,7 @@ namespace Blaze_Compiler
                 Console.WriteLine($"    -s [file]       Blaze source file to compile");
                 Console.WriteLine($"    -m [name]       Use a custom module name");
                 Console.WriteLine($"    -d              Compiles as a debug module");
+                Console.WriteLine($"    -c              Print the contents of a module file (source file must be blzm)");
                 return;
             }
 
@@ -78,6 +84,28 @@ namespace Blaze_Compiler
             {
                 Console.WriteLine("Source file not found");
                 return;
+            }
+
+            if (dump)
+            {
+                try
+                {
+                    // Load module
+                    Module module = new Module();
+
+                    MemoryStream stream = new MemoryStream(File.ReadAllBytes(source_file));
+                    BinaryReader reader = new BinaryReader(stream);
+
+                    module.FromBinary(reader);
+                    module.PrintToConsole();
+
+                    return;
+                }
+                catch (FileLoadException e)
+                {
+                    Console.WriteLine(e.Message);
+                    return;
+                }
             }
 
             string program = File.ReadAllText(source_file);

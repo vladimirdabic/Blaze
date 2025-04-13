@@ -93,6 +93,24 @@ namespace VD.Blaze.Interpreter
         /// </summary>
         public void Execute()
         {
+            /*Done = false;
+
+            Stack.Clear();
+            _contexts.Clear();
+            _exceptionStack.Clear();
+            _current = 0;
+            Line = 0;
+            _inConstructor = false;*/
+            Setup();
+
+            while (!Done)
+            {
+                Step();
+            }
+        }
+
+        internal void Setup()
+        {
             Done = false;
 
             Stack.Clear();
@@ -101,11 +119,6 @@ namespace VD.Blaze.Interpreter
             _current = 0;
             Line = 0;
             _inConstructor = false;
-
-            while (!Done)
-            {
-                Step();
-            }
         }
 
         /// <summary>

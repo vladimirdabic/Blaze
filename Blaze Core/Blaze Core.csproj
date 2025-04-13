@@ -40,6 +40,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Interpreter\Executor.cs" />
     <Compile Include="Interpreter\Environment\BaseEnv.cs" />
     <Compile Include="Interpreter\Environment\ClassEnv.cs" />
     <Compile Include="Interpreter\Environment\FuncEnv.cs" />

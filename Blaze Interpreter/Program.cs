@@ -80,6 +80,8 @@ namespace Blaze_Interpreter
 
                 // Setup vm and internal module
                 VM vm = new VM();
+                Executor exec = new Executor();
+
                 ModuleEnv internal_module = new ModuleEnv();
                 Utils.CreateLibraries(internal_module);
 
@@ -96,7 +98,10 @@ namespace Blaze_Interpreter
                     return;
                 }
 
-                vm.RunFunction(func, null);
+                // vm.RunFunction(func, null);
+
+                exec.LoadFunction(vm, func, null);
+                exec.Execute();
             }
             catch (VMException e)
             {
