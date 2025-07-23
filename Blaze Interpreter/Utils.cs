@@ -16,53 +16,6 @@ namespace Blaze_Interpreter
     {
         public static void CreateLibraries(ModuleEnv env)
         {
-            // Console library
-            var console_lib = new Library("console");
-            env.DefineVariable("console", VariableType.PUBLIC, console_lib);
-
-            console_lib.DefineFunction("print", (VM vm, List<IValue> args) =>
-            {
-                foreach (var arg in args)
-                    Console.Write($"{arg.AsString()}");
-
-                Console.Write('\n');
-                return null;
-            });
-
-            console_lib.DefineFunction("input", (VM vm, List<IValue> args) =>
-            {
-                if (args.Count > 0)
-                    Console.Write(args[0].AsString());
-
-                string input = Console.ReadLine();
-                return new StringValue(input);
-            });
-
-            console_lib.DefineFunction("clear", (VM vm, List<IValue> args) =>
-            {
-                Console.Clear();
-                return null;
-            });
-
-            console_lib.DefineFunction("write", (VM vm, List<IValue> args) =>
-            {
-                foreach (var arg in args)
-                    Console.Write($"{arg.AsString()}");
-
-                return null;
-            });
-
-            console_lib.DefineFunction("key", (VM vm, List<IValue> args) =>
-            {
-                var k = Console.ReadKey();
-
-                var res = new ListValue();
-                res.Values.Add(new StringValue(k.KeyChar.ToString()));
-                res.Values.Add(new NumberValue((double)k.Key));
-
-                return res;
-            });
-
             // Parse library
             var parse_lib = new Library("parse");
             env.DefineVariable("parse", VariableType.PUBLIC, parse_lib);

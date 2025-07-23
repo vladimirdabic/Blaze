@@ -40,6 +40,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Lib\IBlazeModuleFactory.cs" />
     <Compile Include="Interpreter\Executor.cs" />
     <Compile Include="Interpreter\Environment\BaseEnv.cs" />
     <Compile Include="Interpreter\Environment\ClassEnv.cs" />
@@ -67,6 +68,8 @@
     <Compile Include="Interpreter\Types\NullValue.cs" />
     <Compile Include="Interpreter\Types\NumberValue.cs" />
     <Compile Include="Interpreter\Types\StringValue.cs" />
+    <Compile Include="Lib\Library.cs" />
+    <Compile Include="Lib\LibraryLoader.cs" />
     <Compile Include="Module\Class.cs" />
     <Compile Include="Module\Constant.cs" />
     <Compile Include="Module\Function.cs" />

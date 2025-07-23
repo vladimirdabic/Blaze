@@ -3,12 +3,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using VD.Blaze.Interpreter;
 using VD.Blaze.Interpreter.Environment;
 using VD.Blaze.Interpreter.Types;
+using VD.Blaze.Lib;
 using VD.Blaze.Module;
+using BlzModule = VD.Blaze.Module.Module;
 
 
 namespace Blaze_Interpreter
@@ -63,9 +66,9 @@ namespace Blaze_Interpreter
                 return;
             }
 
-            try { 
+            try {
                 // Load module
-                Module module = new Module();
+                BlzModule module = new BlzModule();
 
                 MemoryStream stream = new MemoryStream(File.ReadAllBytes(moduleFileName));
                 BinaryReader reader = new BinaryReader(stream);
@@ -84,6 +87,19 @@ namespace Blaze_Interpreter
 
                 ModuleEnv internal_module = new ModuleEnv();
                 Utils.CreateLibraries(internal_module);
+
+                // Load libraries
+                string exeDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                string libDir = Path.Combine(exeDir, "lib");
+
+                if (Directory.Exists(libDir))
+                {
+                    foreach (var file in Directory.GetFiles(libDir, "*.dll"))
+                    {
+                        var asm = Assembly.LoadFrom(file);
+                        LibraryLoader.Load(asm, internal_module);
+                    }
+                }
 
                 // Load user module
                 ModuleEnv env = vm.LoadModule(module);

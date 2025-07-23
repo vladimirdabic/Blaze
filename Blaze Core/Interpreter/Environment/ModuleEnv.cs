@@ -109,6 +109,12 @@ namespace VD.Blaze.Interpreter.Environment
             return variable;
         }
 
+        public IVariable DefineFunction(string name, Func<VM, List<IValue>, IValue> func)
+        {
+            var func_obj = new BuiltinFunctionValue(name, func);
+            return DefineVariable(name, VariableType.PUBLIC, func_obj);
+        }
+
         public override IVariable GetVariable(string name)
         {
             if (Variables.ContainsKey(name))
@@ -148,7 +154,7 @@ namespace VD.Blaze.Interpreter.Environment
         /// Gets a public variable from this module
         /// </summary>
         /// <param name="name">Variable name</param>
-        public Variable GetPublicVariable(string name, ModuleEnv callerChild = null)
+        public Variable GetPublicVariable(string name, ModuleEnv callerChild = null, bool ignoreParent = false)
         {
             if (Variables.ContainsKey(name))
             {
@@ -163,12 +169,12 @@ namespace VD.Blaze.Interpreter.Environment
             {
                 if (child != callerChild)
                 {
-                    Variable value = child.GetPublicVariable(name);
+                    Variable value = child.GetPublicVariable(name, null, true);
                     if (value is not null) return value;
                 }
             }
 
-            if (Parent is not null)
+            if (Parent is not null && !ignoreParent)
             {
                 Variable value = ((ModuleEnv)Parent).GetPublicVariable(name, this);
                 if (value is not null) return value;
