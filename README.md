@@ -44,47 +44,9 @@ Blaze works with **_modules_**.\
 Each Blaze source file is compiled to a *module*, which contains functions, classes and variables.\
 Variables can be declared as public, private or extern.
 
-The console interface is provided from an external library that contains a module.\
+The console interface is provided from an external library that contains a module.
 
 During runtime each module can have multiple children and a parent which make up a hierarchy.
-
-## Libraries
-Blaze libraries are made via C# class libraries. A library consists of a collection of modules. To create a library, add a reference to `blzcore.dll`, then use the BlazeModule attribute and implement the IBlazeModuleFactory interface. Here's an example library with one module:
-```cs
-using VD.Blaze.Interpreter;
-using VD.Blaze.Interpreter.Environment;
-using VD.Blaze.Interpreter.Types;
-using VD.Blaze.Lib;
-
-namespace ExampleLib
-{
-    [BlazeModule("ExampleModule")]
-    public class Example : IBlazeModuleFactory
-    {
-        public ModuleEnv CreateModule()
-        {
-            var env = new ModuleEnv();
-            env.DefineFunction("testfunc", TestFunc);
-
-            return env;
-        }
-
-        private IValue TestFunc(VM vm, List<IValue> args)
-        {
-            Console.WriteLine("This is my test function");
-            return VM.NullInstance;
-        }
-    }
-}
-```
-Using the function is as simple as:
-```
-import testfunc;  // import is an alias for 'extern var'
-
-func main() {
-    testfunc();
-}
-```
 
 
 ## Features
@@ -130,5 +92,71 @@ event UserEvent.Connect(username) {
     if(!(["vladimirdabic", "doofusjack"].contains(username))) return;
 
     console.print("Specific user connected");
+}
+```
+
+## Libraries
+Blaze libraries are made via C# class libraries. A library consists of a collection of modules. To create a library, add a reference to `blzcore.dll`, then use the BlazeModule attribute and implement the IBlazeModuleFactory interface. Here's an example library with one module:
+```cs
+using VD.Blaze.Interpreter;
+using VD.Blaze.Interpreter.Environment;
+using VD.Blaze.Interpreter.Types;
+using VD.Blaze.Lib;
+
+namespace ExampleLib
+{
+    [BlazeModule("ExampleModule")]
+    public class Example : IBlazeModuleFactory
+    {
+        public ModuleEnv CreateModule()
+        {
+            var env = new ModuleEnv();
+            env.DefineFunction("testfunc", TestFunc);
+
+            return env;
+        }
+
+        private IValue TestFunc(VM vm, List<IValue> args)
+        {
+            Console.WriteLine("This is my test function");
+            return VM.NullInstance;
+        }
+    }
+}
+```
+Using the function is as simple as:
+```
+import testfunc;  // import is an alias for 'extern var'
+
+func main() {
+    testfunc();
+}
+```
+You may group functions and variables into a single object. This is done by using the Library object. Here's an example:
+```cs
+public ModuleEnv CreateModule()
+{
+    ModuleEnv env = new ModuleEnv();
+    Library lib = new Library("console");
+    env.DefineVariable("console", VariableType.PUBLIC, lib);
+
+    lib.DefineFunction("print", (VM vm, List<IValue> args) =>
+    {
+        foreach (var arg in args)
+            Console.Write(arg.AsString());
+
+        Console.Write('\n');
+        return null;
+    });
+
+    return env;
+}
+```
+
+```
+import console;
+
+func main() {
+    console.print("Hello World");
 }
 ```
