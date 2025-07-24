@@ -85,8 +85,7 @@ namespace Blaze_Interpreter
                 VM vm = new VM();
                 Executor exec = new Executor();
 
-                ModuleEnv internal_module = new ModuleEnv();
-                Utils.CreateLibraries(internal_module);
+                ModuleEnv internal_module = new ModuleEnv(); // Might use in future
 
                 // Load libraries
                 string exeDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);

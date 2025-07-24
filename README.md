@@ -44,18 +44,48 @@ Blaze works with **_modules_**.\
 Each Blaze source file is compiled to a *module*, which contains functions, classes and variables.\
 Variables can be declared as public, private or extern.
 
-The console interface is provided from an internal module in the interpreter.\
-That might sound like a global environment, but unless you specify that console is *extern* the interpreter won't be able to see it.
+The console interface is provided from an external library that contains a module.\
 
 During runtime each module can have multiple children and a parent which make up a hierarchy.
 
 ## Libraries
-Blaze doesn't come with a standard library, that task is up to the developer who's embedding the language into their application.\
-The developer should keep in mind that goal is to provide the user only with functions they'll actually need.
+Blaze libraries are made via C# class libraries. A library consists of a collection of modules. To create a library, add a reference to `blzcore.dll`, then use the BlazeModule attribute and implement the IBlazeModuleFactory interface. Here's an example library with one module:
+```cs
+using VD.Blaze.Interpreter;
+using VD.Blaze.Interpreter.Environment;
+using VD.Blaze.Interpreter.Types;
+using VD.Blaze.Lib;
 
-In the future there might be a system where you can load modules that are made with C# and exported as a C# DLL.\
-Maybe even a C++ DLL, which would work better in the future if I ever write an interpreter in C++.\
-When that's possible, then some kind of standard library might appear.
+namespace ExampleLib
+{
+    [BlazeModule("ExampleModule")]
+    public class Example : IBlazeModuleFactory
+    {
+        public ModuleEnv CreateModule()
+        {
+            var env = new ModuleEnv();
+            env.DefineFunction("testfunc", TestFunc);
+
+            return env;
+        }
+
+        private IValue TestFunc(VM vm, List<IValue> args)
+        {
+            Console.WriteLine("This is my test function");
+            return VM.NullInstance;
+        }
+    }
+}
+```
+Using the function is as simple as:
+```
+import testfunc;  // import is an alias for 'extern var'
+
+func main() {
+    testfunc();
+}
+```
+
 
 ## Features
 Blaze currently supports:
