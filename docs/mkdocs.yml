@@ -1,0 +1,22 @@
+site_name: Blaze Documentation
+nav:
+    - Getting Started:
+      - Installation: index.md
+      - Hello World: start/helloworld.md
+      - Variables: start/variables.md
+      - Functions: start/functions.md
+      - Classes: start/classes.md
+      - Events: start/events.md
+    - Core Types:
+      - Overview: types/overview.md
+      - Primitives: types/primitives.md
+      - Containers: types/containers.md
+      - Strings: types/strings.md
+      - Lists: types/lists.md
+      - Dictionaries: types/dicts.md
+      - Iterators: types/iterators.md
+theme:
+  name: readthedocs
+
+markdown_extensions:
+  - admonition
