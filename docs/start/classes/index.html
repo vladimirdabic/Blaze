@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Classes - Blaze Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Classes";
+        var mkdocs_page_input_path = "start\\classes.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> Blaze Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../..">Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../helloworld/">Hello World</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../variables/">Variables</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../functions/">Functions</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Classes</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#instantiating">Instantiating</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#class-scope-and-visibility">Class Scope and Visibility</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../events/">Events</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Core Types</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/overview/">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/primitives/">Primitives</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/containers/">Containers</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/strings/">Strings</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/lists/">Lists</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/dicts/">Dictionaries</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/iterators/">Iterators</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">Blaze Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Getting Started</li>
+      <li class="breadcrumb-item active">Classes</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="classes">Classes</h1>
+<p>Classes are declared using the <code>class</code> keyword.</p>
+<pre><code class="language-none">class Counter {
+    var current;
+
+    Counter(initial) {
+        if(initial == null)
+            current = 0;
+        else
+            current = initial;
+    }
+
+    func next() {
+        return current++;
+    }
+}
+</code></pre>
+<p>Classes are also first-class values, meaning they can be assigned to variables, passed as arguments, or returned from functions.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Inside class functions, you can use <code>this</code> to refer to the current instance and access its members, e.g., <code>this.current</code>.</p>
+</div>
+<h2 id="instantiating">Instantiating</h2>
+<p>To create an instance of a class, use the <code>new</code> keyword:</p>
+<pre><code class="language-none">func main() {
+    var c1 = new Counter(5);
+    var c2 = new Counter();
+
+    console.print(c1.next());
+    console.print(c1.next());
+    console.print(c2.next());
+    console.print(c2.next());
+}
+</code></pre>
+<h2 id="class-scope-and-visibility">Class Scope and Visibility</h2>
+<p>Unlike functions and variables, all classes are module-level declarations. They can only be declared at the top scope of a Blaze source file.</p>
+<p>The following modifiers can be used with classes:</p>
+<ul>
+<li><code>public</code>: Exposes the class to other modules</li>
+<li><code>private</code>: The class is accessible only within its own module</li>
+</ul>
+<p>If no modifier is provided, <code>private</code> is assumed.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All class members (variables and functions) are implicitly public. Blaze does not currently support member-level access modifiers.</p>
+</div>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../functions/" class="btn btn-neutral float-left" title="Functions"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../events/" class="btn btn-neutral float-right" title="Events">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../functions/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../events/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
