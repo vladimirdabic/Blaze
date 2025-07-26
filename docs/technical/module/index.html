@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Module Format - Blaze Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Module Format";
+        var mkdocs_page_input_path = "technical\\module.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> Blaze Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../..">Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../start/helloworld/">Hello World</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../start/variables/">Variables</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../start/functions/">Functions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../start/classes/">Classes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../start/events/">Events</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Core Types</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/overview/">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/primitives/">Primitives</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/containers/">Containers</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/strings/">Strings</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/lists/">Lists</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/dicts/">Dictionaries</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/iterators/">Iterators</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Technical Info</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../internals/">Module Internals</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../instructions/">Instruction Set</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Module Format</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#constants">Constants</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#variables">Variables</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#functions">Functions</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#classes">Classes</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#full-definition">Full Definition</a>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">Blaze Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Technical Info</li>
+      <li class="breadcrumb-item active">Module Format</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="module-format">Module Format</h1>
+<p>A Blaze module is a binary file that holds the intermediate representation of a Blaze program. It consists of variable, function and class data. </p>
+<p>A <code>.blzm</code> file consists of the following sections, in order:</p>
+<ul>
+<li>Header</li>
+<li>Constants</li>
+<li>Variables</li>
+<li>Functions</li>
+<li>Classes</li>
+</ul>
+<p>The following is the formal definition of a module file:</p>
+<pre><code class="language-cpp">struct module {
+    head :: header;
+
+    const_count :: uint32;
+    constants :: constant[const_count];
+
+    var_count :: uint32;
+    variables :: variable[var_count];
+
+    func_count :: uint32;
+    functions :: function[func_count];
+
+    class_count :: uint32;
+    classes :: class[class_count];
+}
+</code></pre>
+<p>The header holds the version of the format it uses and the name of the module. It's defined as:</p>
+<pre><code class="language-cpp">struct header {
+    identifier :: uint32;
+    v_major :: uint8;
+    v_minor :: uint8;
+
+    name_len :: uint16;
+    name :: char[name_len];
+
+    is_debug :: bool;
+}
+</code></pre>
+<h2 id="constants">Constants</h2>
+<p>Constants are values that appear once or multiple times in code, such as numbers (eg. 10, 69, 420, etc.) and strings (eg. "Hello World"), that can be referenced by the rest of the module. The following is the definition of a constant:</p>
+<pre><code class="language-cpp">enum ctype :: uint8 {
+    0: NUMBER;
+    1: STRING;
+}
+
+struct constant {
+    type :: ctype;
+
+    if(type == ctype.NUMBER) {
+        value :: float64;
+    } else if(type == ctype.STRING) {
+        len :: uint16;
+        value :: char[len];
+    }
+}
+</code></pre>
+<h2 id="variables">Variables</h2>
+<p>Each variable in the module is defined with a name and a visibility modifier.</p>
+<pre><code class="language-cpp">enum vtype :: uint8 {
+    0: PRIVATE; 
+    1: PUBLIC;
+    2: EXTERNAL;
+}
+
+struct variable {
+    type :: vtype;
+    name_ref :: uint16;  // index to string constant (one-indexed)
+}
+</code></pre>
+<h2 id="functions">Functions</h2>
+<p>Functions include name reference, argument information, and their instruction bytecode.</p>
+<pre><code class="language-cpp">struct instruction {
+    op :: opcode;
+    arg :: uint8;
+}
+
+struct function {
+    name_ref :: uint16;  // index to string constant (one-indexed)
+    num_args :: uint8;
+    varargs :: bool;
+    local_count :: uint8;
+
+    // instruction block
+    inst_count :: uint16;
+    instructions :: instruction[inst_count];
+}
+</code></pre>
+<h2 id="classes">Classes</h2>
+<p>Each class includes its name, member identifiers, and a reference to its constructor.</p>
+<pre><code class="language-cpp">struct class {
+    name_ref :: uint16;  // index to string constant (one-indexed)
+
+    member_count :: uint8;
+    members :: uint16[member_count]; // list of string constant refs (zero-indexed)
+
+    constructor_ref :: uint16; // reference to function (zero-indexed)
+}
+
+</code></pre>
+<h2 id="full-definition">Full Definition</h2>
+<pre><code class="language-cpp">// Constants
+enum ctype :: uint8 {
+    0: NUMBER;
+    1: STRING;
+}
+
+struct constant {
+    type :: ctype;
+
+    if(type == ctype.NUMBER) {
+        value :: float64;
+    } else if(type == ctype.STRING) {
+        len :: uint16;
+        value :: char[len];
+    }
+}
+
+// Variables
+enum vtype :: uint8 {
+    0: PRIVATE; 
+    1: PUBLIC;
+    2: EXTERNAL;
+}
+
+struct variable {
+    type :: vtype;
+    name_ref :: uint16;  // index to string constant (one-indexed)
+}
+
+// Functions
+enum opcode :: uint8 {
+    0: NOP;
+    1: POP;
+    2: EXTENDED_ARG;
+    3: LDNULL;
+    4: LDARG;
+    5: LDCONST;
+    6: LDLOCAL;
+    7: LDVAR;
+    8: LDFUNC;
+    9: LDCLASS;
+    10: LDBOOL;
+    11: STLOCAL;
+    12: STVAR;
+    13: STARG;
+    14: CALL;
+    15: RET;
+    16: ADD;
+    17: SUB;
+    18: MUL;
+    19: DIV;
+    20: INTDIV;
+    21: THROW;
+    22: CATCH;
+    23: TRY_END;
+    24: EQ;
+    25: LT;
+    26: LTE;
+    27: NOT;
+    28: JMP;
+    29: JMPB;
+    30: JMPA;
+    31: JMPT;
+    32: JMPF;
+    33: OR;
+    34: AND;
+    35: DUP;
+    36: VARARGS;
+    37: LDLIST;
+    38: LDOBJ;
+    39: LDINDEX;
+    40: STINDEX;
+    41: LDPROP;
+    42: STPROP;
+    43: LDEVENT;
+    44: ITER;
+    45: NEW;
+    46: ATTACH;
+}
+
+struct instruction {
+    op :: opcode;
+    arg :: uint8;
+}
+
+struct function {
+    name_ref :: uint16;  // index to string constant (one-indexed)
+    num_args :: uint8;
+    varargs :: bool;
+    local_count :: uint8;
+
+    // instruction block
+    inst_count :: uint16;
+    instructions :: instruction[inst_count];
+}
+
+// Classes
+struct class {
+    name_ref :: uint16;  // index to string constant (one-indexed)
+
+    member_count :: uint8;
+    members :: uint16[member_count]; // list of string constant refs (zero-indexed)
+
+    constructor_ref :: uint16; // reference to function (zero-indexed)
+}
+
+
+struct header {
+    identifier :: uint32;
+    v_major :: uint8;
+    v_minor :: uint8;
+
+    name_len :: uint16;
+    name :: char[name_len];
+
+    is_debug :: bool;
+}
+
+@entry
+struct module {
+    head :: header;
+
+    const_count :: uint32;
+    constants :: constant[const_count];
+
+    var_count :: uint32;
+    variables :: variable[var_count];
+
+    func_count :: uint32;
+    functions :: function[func_count];
+
+    class_count :: uint32;
+    classes :: class[class_count];
+}
+</code></pre>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../instructions/" class="btn btn-neutral float-left" title="Instruction Set"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../instructions/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

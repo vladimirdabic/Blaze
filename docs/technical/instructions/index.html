@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Instruction Set - Blaze Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Instruction Set";
+        var mkdocs_page_input_path = "technical\\instructions.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> Blaze Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../..">Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../start/helloworld/">Hello World</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../start/variables/">Variables</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../start/functions/">Functions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../start/classes/">Classes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../start/events/">Events</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Core Types</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/overview/">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/primitives/">Primitives</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/containers/">Containers</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/strings/">Strings</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/lists/">Lists</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/dicts/">Dictionaries</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/iterators/">Iterators</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Technical Info</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../internals/">Module Internals</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Instruction Set</a>
+    <ul class="current">
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../module/">Module Format</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">Blaze Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Technical Info</li>
+      <li class="breadcrumb-item active">Instruction Set</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="instruction-set">Instruction Set</h1>
+<p>A summary of all Blaze instructions is provided in the table below.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul>
+<li>Stack changes are denoted as <code>before → after</code>, where stack items are shown from bottom to top.</li>
+<li>Instruction parameters are shown using Greek letters (e.g., <code>α</code> is the first parameter, <code>β</code> the second, etc).</li>
+</ul>
+</div>
+<p>Example of a single-parameter instruction:</p>
+<pre><code class="language-none">POP α
+</code></pre>
+<p>Example of a two-parameter instruction:</p>
+<pre><code>EXTENDED_ARG β
+LDLOCAL α
+</code></pre>
+<p>Stack notation example:
+<code>..., x, y → ..., z</code>. This means the instruction pops y and x, and pushes z.</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Name</th>
+<th># Params</th>
+<th>Stack</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>00</td>
+<td>NOP</td>
+<td>0</td>
+<td>→</td>
+<td>No operation</td>
+</tr>
+<tr>
+<td>01</td>
+<td>POP</td>
+<td>1</td>
+<td>value →</td>
+<td>Removes α values from the stack</td>
+</tr>
+<tr>
+<td>02</td>
+<td>EXTENDED_ARG</td>
+<td>1</td>
+<td>→</td>
+<td>Extend the previous argument with N</td>
+</tr>
+<tr>
+<td>03</td>
+<td>LDNULL</td>
+<td>0</td>
+<td>→ null</td>
+<td>Load null instance onto stack</td>
+</tr>
+<tr>
+<td>04</td>
+<td>LDARG</td>
+<td>1</td>
+<td>→ value</td>
+<td>Load function parameter α onto stack</td>
+</tr>
+<tr>
+<td>05</td>
+<td>LDCONST</td>
+<td>1</td>
+<td>→ value</td>
+<td>Load constant α onto stack</td>
+</tr>
+<tr>
+<td>06</td>
+<td>LDLOCAL</td>
+<td>2</td>
+<td>→ value</td>
+<td>Loads the value from the local slot α with upvalue β onto the stack</td>
+</tr>
+<tr>
+<td>07</td>
+<td>LDVAR</td>
+<td>1</td>
+<td>→ value</td>
+<td>Load a module variable onto the stack, with α representing the string constant which holds the name</td>
+</tr>
+<tr>
+<td>08</td>
+<td>LDFUNC</td>
+<td>1</td>
+<td>→ func</td>
+<td>Loads the function α onto the stack</td>
+</tr>
+<tr>
+<td>09</td>
+<td>LDCLASS</td>
+<td>1</td>
+<td>→ class</td>
+<td>Loads the class α onto the stack</td>
+</tr>
+<tr>
+<td>0A</td>
+<td>LDBOOL</td>
+<td>1</td>
+<td>→ value</td>
+<td>Loads a boolean of value α onto the stack</td>
+</tr>
+<tr>
+<td>0B</td>
+<td>STLOCAL</td>
+<td>2</td>
+<td>value →</td>
+<td>Stores the top stack value into local slot α with upvalue β</td>
+</tr>
+<tr>
+<td>0C</td>
+<td>STVAR</td>
+<td>1</td>
+<td>value →</td>
+<td>Stores the top stack value into a module variable, with α representing the string constant which holds the name</td>
+</tr>
+<tr>
+<td>0D</td>
+<td>STARG</td>
+<td>1</td>
+<td>value →</td>
+<td>Store top stack value into function parameter α</td>
+</tr>
+<tr>
+<td>0E</td>
+<td>CALL</td>
+<td>1</td>
+<td>argn, ..., arg1, callable → result</td>
+<td>Calls the top stack value with number of parameters α</td>
+</tr>
+<tr>
+<td>0F</td>
+<td>RET</td>
+<td>0</td>
+<td>value →</td>
+<td>Returns the top stack value</td>
+</tr>
+<tr>
+<td>10</td>
+<td>ADD</td>
+<td>0</td>
+<td>left, right → result</td>
+<td>Adds two objects</td>
+</tr>
+<tr>
+<td>11</td>
+<td>SUB</td>
+<td>0</td>
+<td>left, right → result</td>
+<td>Subtracts two objects</td>
+</tr>
+<tr>
+<td>12</td>
+<td>MUL</td>
+<td>0</td>
+<td>left, right → result</td>
+<td>Multiplies two objects</td>
+</tr>
+<tr>
+<td>13</td>
+<td>DIV</td>
+<td>0</td>
+<td>left, right → result</td>
+<td>Divides two objects</td>
+</tr>
+<tr>
+<td>14</td>
+<td>INTDIV</td>
+<td>0</td>
+<td>left, right → result</td>
+<td>Performs integer division on two objects</td>
+</tr>
+<tr>
+<td>15</td>
+<td>THROW</td>
+<td>0</td>
+<td>value →</td>
+<td>Throws an exception with top stack value</td>
+</tr>
+<tr>
+<td>16</td>
+<td>CATCH</td>
+<td>1</td>
+<td>value →</td>
+<td>Stores relative position α of the catch block into the exception stack</td>
+</tr>
+<tr>
+<td>17</td>
+<td>TRY_END</td>
+<td>0</td>
+<td>→</td>
+<td>Indicates the exit of a try block</td>
+</tr>
+<tr>
+<td>18</td>
+<td>EQ</td>
+<td>0</td>
+<td>left, right → result</td>
+<td>Compares two objects</td>
+</tr>
+<tr>
+<td>19</td>
+<td>LT</td>
+<td>0</td>
+<td>left, right → result</td>
+<td>Less than comparison</td>
+</tr>
+<tr>
+<td>1A</td>
+<td>LTE</td>
+<td>0</td>
+<td>left, right → result</td>
+<td>Less than or equals comparison</td>
+</tr>
+<tr>
+<td>1B</td>
+<td>NOT</td>
+<td>0</td>
+<td>value → negated</td>
+<td>Negates an object</td>
+</tr>
+<tr>
+<td>1C</td>
+<td>JMP</td>
+<td>1</td>
+<td>→</td>
+<td>Relative jump α instructions ahead</td>
+</tr>
+<tr>
+<td>1D</td>
+<td>JMPB</td>
+<td>1</td>
+<td>→</td>
+<td>Relative jump α instructions back</td>
+</tr>
+<tr>
+<td>1E</td>
+<td>JMPA</td>
+<td>1</td>
+<td>→</td>
+<td>Absolute jump to instruction α</td>
+</tr>
+<tr>
+<td>1F</td>
+<td>JMPT</td>
+<td>1</td>
+<td>value →</td>
+<td>Relative jump α instructions ahead if top stack value is true</td>
+</tr>
+<tr>
+<td>20</td>
+<td>JMPF</td>
+<td>1</td>
+<td>value →</td>
+<td>Relative jump α instructions ahead if top stack value is false</td>
+</tr>
+<tr>
+<td>21</td>
+<td>OR</td>
+<td>0</td>
+<td>left, right → value</td>
+<td>Perform a logical OR operation on two objects</td>
+</tr>
+<tr>
+<td>22</td>
+<td>AND</td>
+<td>0</td>
+<td>left, right → value</td>
+<td>Perform a logical AND operation on two objects</td>
+</tr>
+<tr>
+<td>23</td>
+<td>DUP</td>
+<td>1</td>
+<td>value → value * α</td>
+<td>Create α copies of the top stack value</td>
+</tr>
+<tr>
+<td>24</td>
+<td>VARARGS</td>
+<td>1</td>
+<td>valuen, ..., value1 →</td>
+<td>/</td>
+</tr>
+<tr>
+<td>25</td>
+<td>LDLIST</td>
+<td>1</td>
+<td>valuen, ..., value1 → list</td>
+<td>Create a list from α values from the stack</td>
+</tr>
+<tr>
+<td>26</td>
+<td>LDOBJ</td>
+<td>1</td>
+<td>valuen, keyn, ..., value1, key1 → dict</td>
+<td>Create a dictionary from α key-value pairs from the stack</td>
+</tr>
+<tr>
+<td>27</td>
+<td>LDINDEX</td>
+<td>0</td>
+<td>idx, object → value</td>
+<td>Load the value stored at index <code>idx</code> from object</td>
+</tr>
+<tr>
+<td>28</td>
+<td>STINDEX</td>
+<td>0</td>
+<td>value, idx, object →</td>
+<td>Store a value at index <code>idx</code> in object</td>
+</tr>
+<tr>
+<td>29</td>
+<td>LDPROP</td>
+<td>1</td>
+<td>object → value</td>
+<td>Load object property α onto stack, with α representing the string constant which holds the name</td>
+</tr>
+<tr>
+<td>2A</td>
+<td>STPROP</td>
+<td>1</td>
+<td>value, object →</td>
+<td>Store value into object property α, with α representing the string constant which holds the name</td>
+</tr>
+<tr>
+<td>2B</td>
+<td>LDEVENT</td>
+<td>0</td>
+<td>→ event</td>
+<td>Create and push an event object</td>
+</tr>
+<tr>
+<td>2C</td>
+<td>ITER</td>
+<td>0</td>
+<td>value → iterator</td>
+<td>Create an iterator for an object</td>
+</tr>
+<tr>
+<td>2D</td>
+<td>NEW</td>
+<td>1</td>
+<td>argn, ... arg1, class → instance</td>
+<td>Creates a new instance of a class, with α being the number of constructor parameters</td>
+</tr>
+<tr>
+<td>2E</td>
+<td>ATTACH</td>
+<td>0</td>
+<td>func, event →</td>
+<td>Attaches a callback to an event</td>
+</tr>
+</tbody>
+</table>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../internals/" class="btn btn-neutral float-left" title="Module Internals"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../module/" class="btn btn-neutral float-right" title="Module Format">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../internals/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../module/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

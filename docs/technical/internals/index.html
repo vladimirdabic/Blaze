@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Module Internals - Blaze Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Module Internals";
+        var mkdocs_page_input_path = "technical\\internals.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> Blaze Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../..">Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../start/helloworld/">Hello World</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../start/variables/">Variables</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../start/functions/">Functions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../start/classes/">Classes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../start/events/">Events</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Core Types</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/overview/">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/primitives/">Primitives</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/containers/">Containers</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/strings/">Strings</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/lists/">Lists</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/dicts/">Dictionaries</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../types/iterators/">Iterators</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Technical Info</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Module Internals</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#instruction-format">Instruction Format</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#constants-table">Constants Table</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#variables-table">Variables Table</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#functions-table">Functions Table</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#example-walkthrough">Example Walkthrough</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../instructions/">Instruction Set</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../module/">Module Format</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">Blaze Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Technical Info</li>
+      <li class="breadcrumb-item active">Module Internals</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="module-internals">Module Internals</h1>
+<p>Internally, the Blaze interpreter uses an instance of a Blaze Virual Machine (VM). The VM is a stack machine, meaning that instructions assume that operands will be on the stack, and results placed onto the stack.</p>
+<p>Take the following Blaze program:</p>
+<pre><code class="language-none">func main() {
+    var x = 2 + 3;
+}
+</code></pre>
+<p>We can compile it by using <code>blzc -s .\app.txt -d</code>, where <code>-d</code> indicates to also store debug information (line numbers).</p>
+<p>To dump the module information, use the the <code>-d</code> (as in dump) flag on the interpreter: <code>blzi -m app.blzm -d</code>, which produces the following output:</p>
+<pre><code class="language-none">== INFORMATION ==
+Version 1.0
+Name '.\app.txt'
+Debug? True
+
+== CONSTANTS ==
+0: String(main)
+1: Number(2)
+2: Number(5)
+
+== VARIABLES ==
+0: main (PRIVATE)
+
+== FUNCTIONS ==
+&lt;anonymous&gt; (# args: 0, # locals: 0, Varargs: False, # instructions: 4)
+1       LDFUNC 1
+        STVAR 0
+0       LDNULL 0
+        RET 0
+main (# args: 0, # locals: 1, Varargs: False, # instructions: 6)
+2       LDCONST 1
+        LDCONST 2
+        ADD 0
+        STLOCAL 0
+0       LDNULL 0
+        RET 0
+
+== CLASSES ==
+</code></pre>
+<h2 id="instruction-format">Instruction Format</h2>
+<p>Each instruction consists of:</p>
+<ul>
+<li>An <strong>opcode</strong> (1 byte): determines the instruction type.</li>
+<li><strong>Optional operands</strong> (1–4 bytes): depending on the instruction.</li>
+</ul>
+<p>Operands include:</p>
+<ul>
+<li><strong>Constant indices</strong>: reference values in the constants table.</li>
+<li><strong>Variable indices</strong>: used to access locals or globals.</li>
+<li><strong>Offsets</strong>: for jumps and conditional branches.</li>
+</ul>
+<p>If an operand doesn't fit in one byte, <code>EXTENDED_ARG</code> instructions are used to increase its size.</p>
+<h2 id="constants-table">Constants Table</h2>
+<p>The constants table stores all literals used in the program: numbers and strings. Each constant has an index used by the instructions.</p>
+<p>Constants can be loaded onto the stack by using the <code>LDCONST</code> instruction whose argument is an index into the constant table.</p>
+<h2 id="variables-table">Variables Table</h2>
+<p>Each variable declared at module level is stored with its name and visibility and can be accessed using <code>STVAR</code> and <code>LDVAR</code> instructions.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The parameter for <code>STVAR</code> and <code>LDVAR</code> is not a direct variable index. Instead, it refers to the index of a string constant that contains the name of the variable.</p>
+</div>
+<h2 id="functions-table">Functions Table</h2>
+<p>Each function is compiled to bytecode and stored with:</p>
+<ul>
+<li>Name (optional)</li>
+<li>Argument count</li>
+<li>Whether it accepts varargs</li>
+<li>Local count</li>
+<li>Instruction count</li>
+<li>Its bytecode instructions</li>
+</ul>
+<h2 id="example-walkthrough">Example Walkthrough</h2>
+<p>Take the main function from the bytecode dump from earlier:</p>
+<pre><code class="language-none">main (# args: 0, # locals: 1, Varargs: False, # instructions: 6)
+2       LDCONST 1
+        LDCONST 2
+        ADD 0
+        STLOCAL 0
+0       LDNULL 0
+        RET 0
+</code></pre>
+<p>Here's what happens:</p>
+<table>
+<thead>
+<tr>
+<th>Instruction</th>
+<th>Stack</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LDCONST 1</code></td>
+<td>2</td>
+<td>Push the constant 2 (index 1) onto the stack</td>
+</tr>
+<tr>
+<td><code>LDCONST 2</code></td>
+<td>2, 3</td>
+<td>Push the constant 3 (index 2) onto the stack</td>
+</tr>
+<tr>
+<td><code>ADD</code></td>
+<td>5</td>
+<td>Pop and add both values and push the result 5</td>
+</tr>
+<tr>
+<td><code>STLOCAL 0</code></td>
+<td>∅</td>
+<td>Pops and stores the result in the first local variable <code>x</code></td>
+</tr>
+<tr>
+<td><code>LDNULL</code></td>
+<td>null</td>
+<td>Pushes null to be returned from function</td>
+</tr>
+<tr>
+<td><code>RET</code></td>
+<td>null</td>
+<td>Returns from the function</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note</strong>: ∅ denotes empty stack</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../../types/iterators/" class="btn btn-neutral float-left" title="Iterators"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../instructions/" class="btn btn-neutral float-right" title="Instruction Set">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../../types/iterators/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../instructions/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
